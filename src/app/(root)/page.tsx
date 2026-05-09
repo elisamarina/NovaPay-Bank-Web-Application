@@ -11,8 +11,8 @@ const Home = () => {
   };
   return (
     <section className="home">
-      <div className="home__content">
-        <header className="home__header">
+      <div className="home-content">
+        <header className="home-header">
           <HeaderBox
             type="greeting"
             title="Welcome"
@@ -26,7 +26,11 @@ const Home = () => {
           />
         </header>
       </div>
-      <RightSidebar user={loggedIn} transactions={[]} banks={[]} />
+      <RightSidebar
+        user={loggedIn}
+        transactions={[]}
+        banks={[{ currentBalance: 123.5 }, { currentBalance: 456.78 }]}
+      />
     </section>
   );
 };

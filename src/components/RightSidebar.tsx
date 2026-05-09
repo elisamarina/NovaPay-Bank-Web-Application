@@ -1,6 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { Ban } from "lucide-react";
+import BankCard from "./BankCard";
 
 const RightSidebar = ({ user, transactions, banks }: RightSidebarProps) => {
   return (
@@ -33,11 +35,28 @@ const RightSidebar = ({ user, transactions, banks }: RightSidebarProps) => {
             </h2>
           </Link>
         </div>
-        {banks.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-5">
-            <div className="relative z-10">BANK CARD 1</div>
+        {banks?.length > 0 && (
+          <div className="relative h-[190px] w-full overflow-hidden">
+            <div className="absolute left-0 top-0 z-10 w-[90%]">
+              <BankCard
+                key={banks[0]?.id}
+                account={banks[0]}
+                userName={`${user.firstName} ${user.lastName}`}
+                showBalance={false}
+              />
+            </div>
+            {banks[1] && (
+              <div className="absolute right-0 top-6 z-0 w-[90%]">
+                <BankCard
+                  key={banks[1]?.id}
+                  account={banks[1]}
+                  userName={`${user.firstName} ${user.lastName}`}
+                  showBalance={false}
+                />
+              </div>
+            )}
           </div>
-        ) : null}
+        )}
       </section>
     </aside>
   );
