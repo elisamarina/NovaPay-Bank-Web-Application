@@ -1,28 +1,28 @@
 "use server";
 
-import { createSessionClient, createAdminClient } from "@/lib/appwrite";
-import { ID } from "node-appwrite";
+import { createAdminClient, createSessionClient } from "@/lib/appwrite";
+import { parseStringify } from "@/lib/utils";
 import { cookies } from "next/headers";
+import { ID } from "node-appwrite";
 
 export const signIn = async (credentials: LoginUser): Promise<boolean> => {
   const { email, password } = credentials;
+
   try {
     const { account } = await createAdminClient();
-
     const session = await account.createEmailPasswordSession({
       email,
       password,
     });
 
-    const cookieStore = cookies();
-    if (cookieStore && typeof cookieStore.set === "function") {
-      cookieStore.set("appwrite-session", session.secret, {
-        path: "/",
-        httpOnly: true,
-        sameSite: "strict",
-        secure: true,
-      });
-    }
+    const cookieStore = await cookies();
+    cookieStore.set("appwrite-session", session.secret, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "strict",
+      secure: true,
+    });
+
     return true;
   } catch (error) {
     console.error("Error", error);
@@ -32,20 +32,32 @@ export const signIn = async (credentials: LoginUser): Promise<boolean> => {
 
 export const signUp = async (userData: SignUpParams): Promise<User | null> => {
   try {
-    const { user } = await createAdminClient();
-    // Creează userul în Appwrite (admin)
+    const { account, user } = await createAdminClient();
     const newUser = await user.create(
       ID.unique(),
       userData.email,
-      null, // phone
+      null,
       userData.password,
       `${userData.firstName} ${userData.lastName}`,
     );
 
-    // Returnează userul nou creat (doar datele de bază)
+    const session = await account.createEmailPasswordSession({
+      email: userData.email,
+      password: userData.password,
+    });
+
+    const cookieStore = await cookies();
+    cookieStore.set("appwrite-session", session.secret, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "strict",
+      secure: true,
+    });
+
     return {
       $id: newUser.$id,
       email: newUser.email,
+      name: newUser.name,
       userId: newUser.$id,
       dwollaCustomerUrl: "",
       dwollaCustomerId: "",
@@ -67,8 +79,9 @@ export const signUp = async (userData: SignUpParams): Promise<User | null> => {
 export async function getLoggedInUser() {
   try {
     const { account } = await createSessionClient();
-    return await account.get();
-  } catch (error) {
+    const user = await account.get();
+    return parseStringify(user);
+  } catch {
     return null;
   }
 }

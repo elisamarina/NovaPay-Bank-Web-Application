@@ -70,7 +70,18 @@ const AuthForm = ({ type }: { type: string }) => {
           );
           setUser(null);
         } else {
-          setUser(newUser);
+          // Auto-login după sign-up
+          const loginResponse = await signIn({
+            email: userData.email,
+            password: userData.password,
+          });
+          if (loginResponse) {
+            setUser(newUser);
+            router.push("/");
+          } else {
+            setUser(newUser);
+            // Dacă login automat eșuează, rămâi pe pagina cu "Link Account"
+          }
         }
       }
       if (type === "sign-in") {

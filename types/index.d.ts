@@ -27,12 +27,14 @@ declare type LoginUser = {
 
 declare type User = {
   $id: string;
+  name: string;
   email: string;
   userId: string;
   dwollaCustomerUrl: string;
   dwollaCustomerId: string;
   firstName: string;
   lastName: string;
+  name: string;
   address1: string;
   city: string;
   state: string;
@@ -215,7 +217,7 @@ declare interface FooterProps {
 declare interface RightSidebarProps {
   user: User;
   transactions: Transaction[];
-  banks: Bank[] & Account[];
+  banks: Account[];
 }
 
 declare interface SiderbarProps {

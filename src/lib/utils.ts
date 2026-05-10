@@ -13,6 +13,9 @@ export const formatAmount = (amount: number): string => {
   }).format(amount);
 };
 
+export const parseStringify = <T>(value: T): T =>
+  JSON.parse(JSON.stringify(value)) as T;
+
 export const authFormSchema = (formType: string) => {
   if (formType === "sign-in") {
     return z.object({
