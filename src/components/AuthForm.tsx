@@ -28,6 +28,7 @@ const AuthForm = ({ type }: { type: string }) => {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const formSchema = authFormSchema(type);
 
@@ -47,8 +48,8 @@ const AuthForm = ({ type }: { type: string }) => {
     setIsLoading(true);
 
     try {
+      setError(null);
       // Sign up with Appwrite & create plaid token
-
       if (type === "sign-up") {
         const userData: SignUpParams = {
           firstName: data.firstName,
@@ -62,21 +63,29 @@ const AuthForm = ({ type }: { type: string }) => {
           email: data.email,
           password: data.password,
         };
-
         const newUser = await signUp(userData);
-
-        setUser(newUser);
+        if (!newUser) {
+          setError(
+            "Sign up failed. Please check your data or try again later.",
+          );
+          setUser(null);
+        } else {
+          setUser(newUser);
+        }
       }
-
       if (type === "sign-in") {
         const response = await signIn({
           email: data.email,
           password: data.password,
         });
-
-        if (response) router.push("/");
+        if (!response) {
+          setError("Sign in failed. Please check your credentials.");
+        } else {
+          router.push("/");
+        }
       }
     } catch (error) {
+      setError("Unexpected error. Check console for details.");
       console.log(error);
     } finally {
       setIsLoading(false);
@@ -109,6 +118,7 @@ const AuthForm = ({ type }: { type: string }) => {
           </h1>
         </div>
       </header>
+      {error && <div className="text-red-500 text-center mb-4">{error}</div>}
       {user ? (
         <div className="flex flex-col gap-4">
           <PlaidLink user={user} variant="primary" />
