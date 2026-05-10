@@ -36,7 +36,7 @@ export const signUp = async (userData: SignUpParams): Promise<User | null> => {
     const newUser = await user.create(
       ID.unique(),
       userData.email,
-      null,
+      undefined,
       userData.password,
       `${userData.firstName} ${userData.lastName}`,
     );
@@ -85,3 +85,16 @@ export async function getLoggedInUser() {
     return null;
   }
 }
+
+export const logoutAccount = async () => {
+  try {
+    const { account } = await createSessionClient();
+    const cookieStore = await cookies();
+    cookieStore.delete("appwrite-session");
+    await account.deleteSession("current");
+    return true;
+  } catch (error) {
+    console.error("Error", error);
+    return false;
+  }
+};
