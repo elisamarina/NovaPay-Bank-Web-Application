@@ -16,6 +16,15 @@ export const formatAmount = (amount: number): string => {
 export const parseStringify = <T>(value: T): T =>
   JSON.parse(JSON.stringify(value)) as T;
 
+export function extractCustomerIdFromUrl(url: string) {
+  const parts = url.split("/");
+  return parts[parts.length - 1];
+}
+
+export function encryptId(id: string) {
+  return btoa(id);
+}
+
 export const authFormSchema = (formType: string) => {
   if (formType === "sign-in") {
     return z.object({

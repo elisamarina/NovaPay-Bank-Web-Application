@@ -25,6 +25,11 @@ declare type LoginUser = {
   password: string;
 };
 
+declare type SignUpResult = {
+  user: User | null;
+  error?: string;
+};
+
 declare type User = {
   $id: string;
   name: string;
@@ -194,7 +199,7 @@ declare interface AuthFormProps {
 
 declare interface BankDropdownProps {
   accounts: Account[];
-  setValue?: UseFormSetValue<any>;
+  setValue?: UseFormSetValue<Record<string, unknown>>;
   otherStyles?: string;
 }
 

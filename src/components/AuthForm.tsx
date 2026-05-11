@@ -3,25 +3,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import React, { useState } from "react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import CustomInput from "./CustomInput";
-import { authFormSchema } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { getLoggedInUser, signIn, signUp } from "@/lib/actions/user.actions";
+
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import CustomInput from "./CustomInput";
+import { authFormSchema } from "@/lib/utils";
+import { signIn, signUp } from "@/lib/actions/user.actions";
 import PlaidLink from "./PlaidLink";
 
 const AuthForm = ({ type }: { type: string }) => {
@@ -32,7 +23,6 @@ const AuthForm = ({ type }: { type: string }) => {
 
   const formSchema = authFormSchema(type);
 
-  // 1. Define your form.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const form = useForm<any>({
     resolver: zodResolver(formSchema),
@@ -42,14 +32,13 @@ const AuthForm = ({ type }: { type: string }) => {
     },
   });
 
-  // 2. Define a submit handler.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onSubmit = async (data: any) => {
     setIsLoading(true);
 
     try {
       setError(null);
-      // Sign up with Appwrite & create plaid token
+
       if (type === "sign-up") {
         const userData: SignUpParams = {
           firstName: data.firstName,
@@ -63,32 +52,26 @@ const AuthForm = ({ type }: { type: string }) => {
           email: data.email,
           password: data.password,
         };
-        const newUser = await signUp(userData);
-        if (!newUser) {
+
+        const signUpResult = await signUp(userData);
+
+        if (!signUpResult.user) {
           setError(
-            "Sign up failed. Please check your data or try again later.",
+            signUpResult.error ??
+              "Sign up failed. Please check your data or try again later.",
           );
           setUser(null);
         } else {
-          // Auto-login după sign-up
-          const loginResponse = await signIn({
-            email: userData.email,
-            password: userData.password,
-          });
-          if (loginResponse) {
-            setUser(newUser);
-            router.push("/");
-          } else {
-            setUser(newUser);
-            // Dacă login automat eșuează, rămâi pe pagina cu "Link Account"
-          }
+          setUser(signUpResult.user);
         }
       }
+
       if (type === "sign-in") {
         const response = await signIn({
           email: data.email,
           password: data.password,
         });
+
         if (!response) {
           setError("Sign in failed. Please check your credentials.");
         } else {
@@ -129,7 +112,9 @@ const AuthForm = ({ type }: { type: string }) => {
           </h1>
         </div>
       </header>
+
       {error && <div className="text-red-500 text-center mb-4">{error}</div>}
+
       {user ? (
         <div className="flex flex-col gap-4">
           <PlaidLink user={user} variant="primary" />

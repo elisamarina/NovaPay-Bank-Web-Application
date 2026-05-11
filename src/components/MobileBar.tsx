@@ -17,7 +17,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import Footer from "./Footer";
-const MobileBar = ({ user }: MobileBarProps) => {
+const MobileBar = ({ user }: MobileNavProps) => {
   const pathname = usePathname();
   return (
     <section className="w-full max-w-[256px]">
