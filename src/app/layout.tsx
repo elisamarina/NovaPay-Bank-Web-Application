@@ -13,9 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Delta",
-  description:
-    "A modern, open-source, and privacy-focused web browser built with Next.js and React.",
+  title: "NovaPay",
+  description: "A modern finance dashboard for connected banking and payments.",
   icons: {
     icon: "/icons/logo.svg",
   },

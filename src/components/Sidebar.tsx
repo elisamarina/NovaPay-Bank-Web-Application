@@ -6,6 +6,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import Footer from "./Footer";
+import ThemeToggle from "./ThemeToggle";
 
 const Sidebar = ({ user }: SiderbarProps) => {
   const pathname = usePathname();
@@ -13,7 +14,7 @@ const Sidebar = ({ user }: SiderbarProps) => {
     <section className="sidebar">
       <nav className="flex flex-col gap-4">
         <Link
-          href="/"
+          href="/dashboard"
           className="mb-12
     cursor-pointer flex
     items-center gap-2 "
@@ -22,11 +23,11 @@ const Sidebar = ({ user }: SiderbarProps) => {
             src="/icons/logo.svg"
             width={34}
             height={34}
-            alt="Delta Logo"
+            alt="NovaPay Logo"
             className="size-[24px] max-xl:size-[14px]"
           />
 
-          <h1 className="sidebar-logo">Delta</h1>
+          <h1 className="sidebar-logo">NovaPay</h1>
         </Link>
         {sidebarLinks.map((item) => {
           const isActive =
@@ -51,7 +52,7 @@ const Sidebar = ({ user }: SiderbarProps) => {
             </Link>
           );
         })}
-        USER
+        <ThemeToggle />
       </nav>
       <Footer user={user} />
     </section>

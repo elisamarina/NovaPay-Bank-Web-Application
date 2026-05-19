@@ -5,7 +5,7 @@ import RightSidebar from "@/components/RightSidebar";
 import { getLoggedInUser } from "@/lib/actions/user.actions";
 import { redirect } from "next/navigation";
 
-const Home = async () => {
+const Dashboard = async () => {
   const loggedIn = await getLoggedInUser();
 
   if (!loggedIn) {
@@ -17,10 +17,10 @@ const Home = async () => {
       id: "mock-checking",
       availableBalance: 123.5,
       currentBalance: 123.5,
-      officialName: "Delta Checking",
+      officialName: "NovaPay Checking",
       mask: "1234",
       institutionId: "mock-bank",
-      name: "Delta Checking",
+      name: "NovaPay Checking",
       type: "depository",
       subtype: "checking",
       appwriteItemId: "mock-checking",
@@ -30,10 +30,10 @@ const Home = async () => {
       id: "mock-savings",
       availableBalance: 456.78,
       currentBalance: 456.78,
-      officialName: "Delta Savings",
+      officialName: "NovaPay Savings",
       mask: "5678",
       institutionId: "mock-bank",
-      name: "Delta Savings",
+      name: "NovaPay Savings",
       type: "depository",
       subtype: "savings",
       appwriteItemId: "mock-savings",
@@ -58,13 +58,9 @@ const Home = async () => {
           />
         </header>
       </div>
-      <RightSidebar
-        user={loggedIn}
-        transactions={[]}
-        banks={accounts}
-      />
+      <RightSidebar user={loggedIn} transactions={[]} banks={accounts} />
     </section>
   );
 };
 
-export default Home;
+export default Dashboard;

@@ -1,7 +1,7 @@
 export const sidebarLinks = [
   {
     imgURL: "/icons/home.svg",
-    route: "/",
+    route: "/dashboard",
     label: "Home",
   },
   {
@@ -18,6 +18,11 @@ export const sidebarLinks = [
     imgURL: "/icons/money-send.svg",
     route: "/payment-transfer",
     label: "Transfer Funds",
+  },
+  {
+    imgURL: "/icons/coins.svg",
+    route: "/staking",
+    label: "Staking",
   },
 ];
 

@@ -25,6 +25,11 @@ declare type LoginUser = {
   password: string;
 };
 
+declare type SignInResult = {
+  success: boolean;
+  error?: string;
+};
+
 declare type SignUpResult = {
   user: User | null;
   error?: string;

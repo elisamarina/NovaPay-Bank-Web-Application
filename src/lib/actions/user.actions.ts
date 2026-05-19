@@ -37,6 +37,8 @@ const getErrorMessage = (error: unknown) => {
   return "Sign up failed. Please check your data or try again later.";
 };
 
+const normalizeEmail = (email: string) => email.trim().toLowerCase();
+
 const normalizeUserDocument = (
   userDocument: Record<string, unknown>,
 ): User => {
@@ -61,8 +63,33 @@ const normalizeUserDocument = (
   };
 };
 
-export const signIn = async (credentials: LoginUser): Promise<boolean> => {
-  const { email, password } = credentials;
+const normalizeAuthUser = (authUser: Record<string, unknown>): User => {
+  const name = String(authUser.name ?? "");
+  const [firstName = "", ...lastNameParts] = name.split(" ");
+
+  return {
+    $id: String(authUser.$id ?? ""),
+    name,
+    email: String(authUser.email ?? ""),
+    userId: String(authUser.$id ?? ""),
+    dwollaCustomerUrl: "",
+    dwollaCustomerId: "",
+    firstName,
+    lastName: lastNameParts.join(" "),
+    address1: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    dateOfBirth: "",
+    ssn: "",
+  };
+};
+
+export const signIn = async (
+  credentials: LoginUser,
+): Promise<SignInResult> => {
+  const email = normalizeEmail(credentials.email);
+  const { password } = credentials;
 
   try {
     const { account } = await createAdminClient();
@@ -74,10 +101,30 @@ export const signIn = async (credentials: LoginUser): Promise<boolean> => {
     const cookieStore = await cookies();
     cookieStore.set("appwrite-session", session.secret, cookieOptions);
 
-    return true;
+    return { success: true };
   } catch (error) {
     console.error("Error", error);
-    return false;
+    try {
+      const { user } = await createAdminClient();
+      const users = await user.list({
+        queries: [Query.equal("email", email)],
+      });
+
+      if (users.total > 0) {
+        return {
+          success: false,
+          error:
+            "Userul exista in Appwrite, dar parola nu se potriveste. Probabil contul a fost creat intr-o incercare anterioara cu alta parola.",
+        };
+      }
+    } catch {
+      // Keep the original auth error below.
+    }
+
+    return {
+      success: false,
+      error: getErrorMessage(error),
+    };
   }
 };
 
@@ -85,7 +132,8 @@ export const signUp = async ({
   password,
   ...userData
 }: SignUpParams): Promise<SignUpResult> => {
-  const { email, firstName, lastName } = userData;
+  const email = normalizeEmail(userData.email);
+  const { firstName, lastName } = userData;
 
   let newUserAccount;
 
@@ -152,23 +200,29 @@ export const signUp = async ({
 
 export async function getLoggedInUser(): Promise<User | null> {
   try {
-    const { account, database } = await createSessionClient();
+    const { account } = await createSessionClient();
     const authUser = await account.get();
-    const users = await database.listDocuments(
-      DATABASE_ID!,
-      USER_COLLECTION_ID!,
-      [Query.equal("ID", authUser.$id)],
-    );
-    const userDocument = users.documents[0];
 
-    if (!userDocument) {
-      return null;
+    try {
+      const { database } = await createAdminClient();
+      const users = await database.listDocuments(
+        DATABASE_ID!,
+        USER_COLLECTION_ID!,
+        [Query.equal("ID", authUser.$id)],
+      );
+      const userDocument = users.documents[0];
+
+      if (userDocument) {
+        return normalizeUserDocument({
+          ...userDocument,
+          email: userDocument.email ?? authUser.email,
+        });
+      }
+    } catch {
+      // Fall back to the authenticated Appwrite user if the profile document is unavailable.
     }
 
-    return normalizeUserDocument({
-      ...userDocument,
-      email: userDocument.email ?? authUser.email,
-    });
+    return normalizeAuthUser(authUser);
   } catch {
     return null;
   }

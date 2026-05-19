@@ -17,6 +17,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import Footer from "./Footer";
+import ThemeToggle from "./ThemeToggle";
 const MobileBar = ({ user }: MobileNavProps) => {
   const pathname = usePathname();
   return (
@@ -31,9 +32,9 @@ const MobileBar = ({ user }: MobileNavProps) => {
             className="cursor-pointer"
           />
         </SheetTrigger>
-        <SheetContent side="left" className="border-none bg-white">
+        <SheetContent side="left" className="border-none bg-white dark:bg-slate-950">
           <Link
-            href="/"
+            href="/dashboard"
             className="
     cursor-pointer flex
     items-center gap-1 px-4 "
@@ -42,11 +43,11 @@ const MobileBar = ({ user }: MobileNavProps) => {
               src="/icons/logo.svg"
               width={34}
               height={34}
-              alt="Delta Logo"
+              alt="NovaPay Logo"
             />
 
-            <h1 className="text-26 font-ibm-plex-serif font-bold text-black-1">
-              Delta
+            <h1 className="text-26 font-ibm-plex-serif font-bold text-black-1 dark:text-slate-50">
+              NovaPay
             </h1>
           </Link>
           <div className="mobilenav-sheet">
@@ -76,7 +77,7 @@ const MobileBar = ({ user }: MobileNavProps) => {
                         />
 
                         <p
-                          className={cn("text-16 font-semibold text-black-2", {
+                          className={cn("text-16 font-semibold text-black-2 dark:text-slate-300", {
                             "text-white": isActive,
                           })}
                         >
@@ -86,7 +87,7 @@ const MobileBar = ({ user }: MobileNavProps) => {
                     </SheetClose>
                   );
                 })}
-                USER
+                <ThemeToggle />
               </nav>
             </SheetClose>
             <Footer user={user} type="mobile" />

@@ -34,7 +34,7 @@ const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
         user,
       });
 
-      router.push("/");
+      router.push("/dashboard");
     },
     [router, user],
   );
@@ -68,7 +68,7 @@ const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
             width={24}
             height={24}
           />
-          <p className="hiddenl text-[16px] font-semibold text-black-2 xl:block">
+          <p className="hiddenl text-[16px] font-semibold text-black-2 dark:text-slate-300 xl:block">
             Connect bank
           </p>
         </Button>
@@ -80,7 +80,7 @@ const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
             width={24}
             height={24}
           />
-          <p className="text-[16px] font-semibold text-black-2">Connect bank</p>
+          <p className="text-[16px] font-semibold text-black-2 dark:text-slate-300">Connect bank</p>
         </Button>
       )}
     </>
