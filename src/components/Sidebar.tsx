@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import Footer from "./Footer";
 import ThemeToggle from "./ThemeToggle";
+import PlaidLink from "./PlaidLink";
 
 const Sidebar = ({ user }: SiderbarProps) => {
   const pathname = usePathname();
@@ -52,6 +53,7 @@ const Sidebar = ({ user }: SiderbarProps) => {
             </Link>
           );
         })}
+        <PlaidLink user={user} variant="ghost" label="Connect bank" />
         <ThemeToggle />
       </nav>
       <Footer user={user} />

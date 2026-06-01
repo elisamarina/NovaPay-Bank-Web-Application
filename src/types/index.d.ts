@@ -27,6 +27,7 @@ declare type LoginUser = {
 
 declare type SignInResult = {
   success: boolean;
+  user?: User;
   error?: string;
 };
 
@@ -94,12 +95,14 @@ declare type Transaction = {
 
 declare type Bank = {
   $id: string;
-  accountId: string;
+  accountId?: string;
+  accountID?: string;
   bankId: string;
   accessToken: string;
   fundingSourceUrl: string;
   userId: string;
-  sharableId: string;
+  sharableId?: string;
+  shareableId?: string;
 };
 
 declare type AccountTypes =
@@ -186,6 +189,7 @@ declare interface PaginationProps {
 declare interface PlaidLinkProps {
   user: User;
   variant?: "primary" | "ghost";
+  label?: string;
   dwollaCustomerId?: string;
 }
 
@@ -268,6 +272,7 @@ declare interface PaymentTransferFormProps {
 // Actions
 declare interface getAccountsProps {
   userId: string;
+  authUserId?: string;
 }
 
 declare interface getAccountProps {
@@ -280,6 +285,7 @@ declare interface getInstitutionProps {
 
 declare interface getTransactionsProps {
   accessToken: string;
+  accountId?: string;
 }
 
 declare interface CreateFundingSourceOptions {
@@ -328,6 +334,7 @@ declare interface createBankAccountProps {
 
 declare interface getBanksProps {
   userId: string;
+  authUserId?: string;
 }
 
 declare interface getBankProps {

@@ -4,42 +4,44 @@ import TotalBalanceBox from "@/components/TotalBalanceBox";
 import RightSidebar from "@/components/RightSidebar";
 import { getLoggedInUser } from "@/lib/actions/user.actions";
 import { redirect } from "next/navigation";
+import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
+import RecentTransactions from "@/components/RecentTransactions";
 
-const Dashboard = async () => {
-  const loggedIn = await getLoggedInUser();
+type AccountsResult = {
+  data: Account[];
+  totalBanks: number;
+  totalCurrentBalance: number;
+};
+
+type AccountResult = {
+  transactions: Transaction[];
+};
+
+const Dashboard = async ({ searchParams: { id, page } }: SearchParamProps) => {
+  const currentPage = Number(page as string) || 1;
+  const loggedIn = (await getLoggedInUser()) as User | null;
 
   if (!loggedIn) {
     redirect("/sign-in");
   }
 
-  const accounts: Account[] = [
-    {
-      id: "mock-checking",
-      availableBalance: 123.5,
-      currentBalance: 123.5,
-      officialName: "NovaPay Checking",
-      mask: "1234",
-      institutionId: "mock-bank",
-      name: "NovaPay Checking",
-      type: "depository",
-      subtype: "checking",
-      appwriteItemId: "mock-checking",
-      sharableId: "mock-checking",
-    },
-    {
-      id: "mock-savings",
-      availableBalance: 456.78,
-      currentBalance: 456.78,
-      officialName: "NovaPay Savings",
-      mask: "5678",
-      institutionId: "mock-bank",
-      name: "NovaPay Savings",
-      type: "depository",
-      subtype: "savings",
-      appwriteItemId: "mock-savings",
-      sharableId: "mock-savings",
-    },
-  ];
+  const accounts = (await getAccounts({
+    userId: loggedIn.$id,
+    authUserId: loggedIn.userId,
+  })) as AccountsResult | undefined;
+
+  if (!accounts) return;
+
+  const accountsData = accounts?.data;
+  const appwriteItemId = (id as string) || accountsData[0]?.appwriteItemId;
+  const account = appwriteItemId
+    ? ((await getAccount({ appwriteItemId })) as AccountResult | undefined)
+    : undefined;
+
+  console.log({
+    accountsData,
+    account,
+  });
 
   return (
     <section className="home">
@@ -48,17 +50,27 @@ const Dashboard = async () => {
           <HeaderBox
             type="greeting"
             title="Welcome"
-            user={loggedIn?.name || "Guest"}
+            user={loggedIn?.firstName || "Guest"}
             subtext="Access your account details and manage your finances."
           />
           <TotalBalanceBox
-            accounts={accounts}
-            totalBanks={accounts.length}
-            totalCurrentBalance={1250.35}
+            accounts={accountsData}
+            totalBanks={accounts?.totalBanks}
+            totalCurrentBalance={accounts?.totalCurrentBalance}
           />
         </header>
+        <RecentTransactions
+          accounts={accountsData}
+          transactions={account?.transactions || []}
+          appwriteItemId={appwriteItemId || ""}
+          page={currentPage}
+        />
       </div>
-      <RightSidebar user={loggedIn} transactions={[]} banks={accounts} />
+      <RightSidebar
+        user={loggedIn}
+        transactions={account?.transactions || []}
+        banks={accountsData?.slice(0, 2)}
+      />
     </section>
   );
 };

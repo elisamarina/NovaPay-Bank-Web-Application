@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useCallback, useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import {
@@ -12,7 +14,7 @@ import {
 } from "@/lib/actions/user.actions";
 import Image from "next/image";
 
-const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
+const PlaidLink = ({ user, variant, label = "Connect bank" }: PlaidLinkProps) => {
   const router = useRouter();
 
   const [token, setToken] = useState("");
@@ -35,6 +37,7 @@ const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
       });
 
       router.push("/dashboard");
+      router.refresh();
     },
     [router, user],
   );
@@ -54,11 +57,12 @@ const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
           disabled={!ready}
           className="plaidlink-primary"
         >
-          Connect bank
+          {label}
         </Button>
       ) : variant === "ghost" ? (
         <Button
           onClick={() => open()}
+          disabled={!ready}
           variant="ghost"
           className="plaidlink-ghost"
         >
@@ -68,19 +72,21 @@ const PlaidLink = ({ user, variant }: PlaidLinkProps) => {
             width={24}
             height={24}
           />
-          <p className="hiddenl text-[16px] font-semibold text-black-2 dark:text-slate-300 xl:block">
-            Connect bank
+          <p className="hidden text-[16px] font-semibold text-black-2 dark:text-slate-300 xl:block">
+            {label}
           </p>
         </Button>
       ) : (
-        <Button onClick={() => open()} className="plaidlink-default">
+        <Button onClick={() => open()} disabled={!ready} className="plaidlink-default">
           <Image
             src="/icons/connect-bank.svg"
             alt="connect bank"
             width={24}
             height={24}
           />
-          <p className="text-[16px] font-semibold text-black-2 dark:text-slate-300">Connect bank</p>
+          <p className="text-[16px] font-semibold text-black-2 dark:text-slate-300">
+            {label}
+          </p>
         </Button>
       )}
     </>
