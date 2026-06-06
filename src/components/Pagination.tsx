@@ -1,49 +1,64 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { Button } from "@/components/ui/button";
 import { formUrlQuery } from "@/lib/utils";
 
 export const Pagination = ({ page, totalPages }: PaginationProps) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()!;
 
-  const handleNavigation = (nextPage: number) => {
+  const handleNavigation = (type: "prev" | "next") => {
+    const pageNumber = type === "prev" ? page - 1 : page + 1;
+
     const newUrl = formUrlQuery({
       params: searchParams.toString(),
       key: "page",
-      value: String(nextPage),
+      value: pageNumber.toString(),
     });
 
     router.push(newUrl, { scroll: false });
   };
 
   return (
-    <div className="flex items-center justify-center gap-4">
-      <button
-        type="button"
-        disabled={page <= 1}
-        onClick={() => handleNavigation(page - 1)}
-        className="flex items-center gap-1 rounded-md border px-3 py-2 text-14 disabled:cursor-not-allowed disabled:opacity-50"
+    <div className="flex justify-between gap-3">
+      <Button
+        size="lg"
+        variant="ghost"
+        className="p-0 hover:bg-transparent"
+        onClick={() => handleNavigation("prev")}
+        disabled={Number(page) <= 1}
       >
-        <ChevronLeft size={16} />
+        <Image
+          src="/icons/arrow-left.svg"
+          alt="arrow"
+          width={20}
+          height={20}
+          className="mr-2"
+        />
         Prev
-      </button>
-
-      <p className="text-14 font-medium text-gray-700">
+      </Button>
+      <p className="text-14 flex items-center px-2">
         {page} / {totalPages}
       </p>
-
-      <button
-        type="button"
-        disabled={page >= totalPages}
-        onClick={() => handleNavigation(page + 1)}
-        className="flex items-center gap-1 rounded-md border px-3 py-2 text-14 disabled:cursor-not-allowed disabled:opacity-50"
+      <Button
+        size="lg"
+        variant="ghost"
+        className="p-0 hover:bg-transparent"
+        onClick={() => handleNavigation("next")}
+        disabled={Number(page) >= totalPages}
       >
         Next
-        <ChevronRight size={16} />
-      </button>
+        <Image
+          src="/icons/arrow-left.svg"
+          alt="arrow"
+          width={20}
+          height={20}
+          className="ml-2 -scale-x-100"
+        />
+      </Button>
     </div>
   );
 };

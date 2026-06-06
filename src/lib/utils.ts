@@ -47,7 +47,7 @@ export const countTransactionCategories = (
   transactions: Transaction[] = [],
 ): CategoryCount[] => {
   const counts = transactions.reduce<Record<string, number>>((acc, transaction) => {
-    const name = transaction.category || "Other";
+    const name = getTransactionCategory(transaction);
     acc[name] = (acc[name] || 0) + 1;
     return acc;
   }, {});
@@ -61,6 +61,65 @@ export const countTransactionCategories = (
     .sort((a, b) => b.count - a.count);
 };
 
+export const getTransactionCategory = (transaction: Transaction) => {
+  const category = transaction.category?.trim();
+  if (category) return category;
+
+  const name = transaction.name.toLowerCase();
+
+  if (
+    name.includes("uber") ||
+    name.includes("airline") ||
+    name.includes("metro") ||
+    name.includes("train")
+  ) {
+    return "Travel";
+  }
+
+  if (
+    name.includes("mcdonald") ||
+    name.includes("starbucks") ||
+    name.includes("coffee") ||
+    name.includes("restaurant")
+  ) {
+    return "Food and Drink";
+  }
+
+  if (
+    name.includes("spotify") ||
+    name.includes("netflix") ||
+    name.includes("subscription")
+  ) {
+    return "Subscriptions";
+  }
+
+  if (name.includes("sparkfun") || name.includes("store")) {
+    return "Shopping";
+  }
+
+  if (name.includes("transfer") || name.includes("novapay")) {
+    return "Transfer";
+  }
+
+  if (name.includes("payment") || name.includes("card")) {
+    return "Payment";
+  }
+
+  if (
+    name.includes("electric") ||
+    name.includes("mobile") ||
+    name.includes("utility")
+  ) {
+    return "Utilities";
+  }
+
+  if (name.includes("saving") || name.includes("vault")) {
+    return "Savings";
+  }
+
+  return "Other";
+};
+
 export function extractCustomerIdFromUrl(url: string) {
   const parts = url.split("/");
   return parts[parts.length - 1];
@@ -68,6 +127,14 @@ export function extractCustomerIdFromUrl(url: string) {
 
 export function encryptId(id: string) {
   return btoa(id);
+}
+
+export function decryptId(id: string) {
+  try {
+    return atob(id);
+  } catch {
+    return id;
+  }
 }
 
 export const removeSpecialCharacters = (value: string) =>

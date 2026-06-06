@@ -92,14 +92,22 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
       (transferTransactionsData.documents as Transaction[]) || [];
 
     const transferTransactions = transferDocuments.map((transferData) => ({
-        id: transferData.$id,
-        name: transferData.name!,
-        amount: transferData.amount!,
-        date: transferData.$createdAt,
-        paymentChannel: transferData.channel,
-        category: transferData.category,
-        type: transferData.senderBankId === bank.$id ? "debit" : "credit",
-      }));
+      id: transferData.$id,
+      $id: transferData.$id,
+      name: transferData.name!,
+      paymentChannel: transferData.channel || "online",
+      type: transferData.senderBankId === bank.$id ? "debit" : "credit",
+      accountId: accountData.account_id,
+      amount: Number(transferData.amount),
+      pending: true,
+      category: transferData.category || "Transfer",
+      date: transferData.$createdAt,
+      image: "",
+      $createdAt: transferData.$createdAt,
+      channel: transferData.channel || "online",
+      senderBankId: transferData.senderBankId,
+      receiverBankId: transferData.receiverBankId,
+    }));
 
     // get institution info from plaid
     const institution = await getInstitution({

@@ -6,6 +6,7 @@ import { getLoggedInUser } from "@/lib/actions/user.actions";
 import { redirect } from "next/navigation";
 import { getAccount, getAccounts } from "@/lib/actions/bank.actions";
 import RecentTransactions from "@/components/RecentTransactions";
+import { withDemoTransactions } from "@/constants/demoTransactions";
 
 type AccountsResult = {
   data: Account[];
@@ -37,6 +38,7 @@ const Dashboard = async ({ searchParams: { id, page } }: SearchParamProps) => {
   const account = appwriteItemId
     ? ((await getAccount({ appwriteItemId })) as AccountResult | undefined)
     : undefined;
+  const transactions = withDemoTransactions(account?.transactions || []);
 
   console.log({
     accountsData,
@@ -61,14 +63,14 @@ const Dashboard = async ({ searchParams: { id, page } }: SearchParamProps) => {
         </header>
         <RecentTransactions
           accounts={accountsData}
-          transactions={account?.transactions || []}
+          transactions={transactions}
           appwriteItemId={appwriteItemId || ""}
           page={currentPage}
         />
       </div>
       <RightSidebar
         user={loggedIn}
-        transactions={account?.transactions || []}
+        transactions={transactions}
         banks={accountsData?.slice(0, 2)}
       />
     </section>

@@ -3,10 +3,13 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
+import Copy from "./Copy";
+
 const BankCard = ({
   account,
   userName,
   showBalance = true,
+  showCopy = false,
 }: CreditCardProps) => {
   return (
     <div className="flex flex-col">
@@ -58,6 +61,7 @@ const BankCard = ({
           className="absolute top-0 left-0"
         />
       </Link>
+      {showCopy && account.sharableId && <Copy title={account.sharableId} />}
     </div>
   );
 };

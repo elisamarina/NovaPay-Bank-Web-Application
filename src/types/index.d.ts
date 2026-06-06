@@ -154,6 +154,7 @@ declare interface CreditCardProps {
   account: Account;
   userName: string;
   showBalance?: boolean;
+  showCopy?: boolean;
 }
 
 declare interface BankInfoProps {

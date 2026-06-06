@@ -11,7 +11,6 @@ import {
   SheetClose,
   SheetContent,
   SheetDescription,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -33,6 +32,10 @@ const MobileBar = ({ user }: MobileNavProps) => {
           />
         </SheetTrigger>
         <SheetContent side="left" className="border-none bg-white dark:bg-slate-950">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Mobile navigation</SheetTitle>
+            <SheetDescription>Main application navigation menu</SheetDescription>
+          </SheetHeader>
           <Link
             href="/dashboard"
             className="

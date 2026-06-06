@@ -155,6 +155,36 @@
   }
 }
 
+@keyframes dotted-wave-drift {
+  0% {
+    transform: translate3d(-3%, 0, 0) rotate(-2deg) skewY(-5deg);
+    background-position:
+      0 0,
+      31px 24px,
+      74px 43px,
+      19px 88px,
+      0 0;
+  }
+  50% {
+    transform: translate3d(3%, -18px, 0) rotate(-3deg) skewY(-7deg);
+    background-position:
+      28px 18px,
+      11px 42px,
+      93px 67px,
+      47px 112px,
+      0 0;
+  }
+  100% {
+    transform: translate3d(-3%, 0, 0) rotate(-2deg) skewY(-5deg);
+    background-position:
+      56px 36px,
+      31px 24px,
+      74px 43px,
+      19px 88px,
+      0 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -258,19 +288,85 @@
   }
 
   .home-content {
-    @apply no-scrollbar flex w-full flex-1 flex-col gap-8 px-5 sm:px-8 py-7 lg:py-12 xl:max-h-screen xl:overflow-y-scroll;
+    @apply no-scrollbar relative isolate flex w-full flex-1 flex-col gap-8 overflow-hidden px-5 py-7 sm:px-8 lg:py-12 xl:max-h-screen xl:overflow-y-scroll;
+  }
+
+  .home-content::before {
+    content: "";
+    @apply pointer-events-none absolute -inset-x-24 -top-24 z-0 opacity-40 dark:opacity-60;
+    height: max(100%, 1500px);
+    background:
+      radial-gradient(circle at 18% 32%, rgba(233, 213, 255, 1) 0 1px, transparent 1.8px),
+      radial-gradient(circle at 71% 24%, rgba(216, 180, 254, 0.9) 0 0.9px, transparent 1.7px),
+      radial-gradient(circle at 44% 78%, rgba(192, 132, 252, 0.7) 0 0.8px, transparent 1.6px),
+      radial-gradient(circle at 82% 67%, rgba(168, 85, 247, 0.55) 0 0.7px, transparent 1.5px),
+      linear-gradient(180deg, rgba(88, 28, 135, 0.16), transparent 92%);
+    background-size:
+      150px 130px,
+      210px 170px,
+      260px 230px,
+      330px 290px,
+      100% 100%;
+    background-position:
+      0 0,
+      31px 24px,
+      74px 43px,
+      19px 88px,
+      0 0;
+    filter:
+      drop-shadow(0 0 8px rgba(216, 180, 254, 0.5))
+      drop-shadow(0 0 18px rgba(168, 85, 247, 0.35));
+    animation: dotted-wave-drift 26s ease-in-out infinite;
+  }
+
+  .home-content::after {
+    content: "";
+    @apply pointer-events-none absolute inset-0 z-0 opacity-25 dark:opacity-35;
+    background: radial-gradient(
+      ellipse at 45% 15%,
+      rgba(168, 85, 247, 0.35),
+      transparent 62%
+    );
   }
 
   .home-header {
-    @apply flex flex-col justify-between gap-8;
+    @apply relative z-10 flex flex-col justify-between gap-8;
   }
 
   .total-balance {
-    @apply flex w-full items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-chart hover:-translate-y-1 hover:shadow-creditCard dark:border-slate-800 dark:bg-slate-900 sm:gap-6 sm:p-6;
+    @apply flex w-full items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-chart hover:-translate-y-1 hover:shadow-creditCard dark:border-slate-800 dark:bg-slate-900 sm:gap-8 sm:p-6;
   }
 
   .total-balance-chart {
-    @apply flex size-full max-w-[100px] items-center sm:max-w-[120px];
+    @apply flex h-[210px] w-full max-w-[300px] items-center justify-center;
+  }
+
+  .flat-pie-wrap {
+    @apply relative h-[220px] w-[220px] rounded-full;
+    filter:
+      drop-shadow(0 0 22px rgba(168, 85, 247, 0.28))
+      drop-shadow(0 18px 28px rgba(88, 28, 135, 0.24));
+  }
+
+  .flat-pie-wrap::before {
+    content: "";
+    @apply pointer-events-none absolute inset-0 z-10 rounded-full border border-purple-200/40 dark:border-purple-300/25;
+    box-shadow:
+      inset 0 0 24px rgba(255, 255, 255, 0.16),
+      0 0 34px rgba(168, 85, 247, 0.16);
+  }
+
+  .flat-pie-label {
+    @apply pointer-events-none absolute z-20 flex -translate-x-1/2 -translate-y-1/2 flex-col rounded-lg border border-white/40 bg-white/35 px-2 py-1.5 text-center leading-none text-slate-950 shadow-sm backdrop-blur-sm dark:border-white/20 dark:bg-slate-950/20 dark:text-white;
+    text-shadow: 0 1px 12px rgba(255, 255, 255, 0.3);
+  }
+
+  .flat-pie-label strong {
+    @apply text-[20px] font-black;
+  }
+
+  .flat-pie-label span {
+    @apply mt-1 max-w-[72px] truncate text-[9px] font-semibold;
   }
 
   .total-balance-label {
@@ -282,15 +378,11 @@
   }
 
   .recent-transactions {
-    @apply flex w-full flex-col gap-6;
+    @apply relative z-10 flex w-full flex-col gap-6;
   }
 
   .view-all-btn {
     @apply text-14 rounded-lg border border-gray-300 px-4 py-2.5 font-semibold text-gray-700 dark:border-slate-700 dark:text-slate-300;
-  }
-
-  .recent-transactions {
-    @apply flex w-full flex-col gap-6;
   }
 
   .recent-transactions-label {
@@ -365,21 +457,29 @@
   }
 
   .header-box-title {
-    @apply text-24 lg:text-30 font-semibold text-gray-900 dark:text-slate-50;
+    @apply text-30 lg:text-36 font-semibold text-gray-900 dark:text-slate-50;
+    text-shadow: 0 0 18px rgba(168, 85, 247, 0.18);
+  }
+
+  .header-box-user {
+    @apply text-bankGradient;
+    text-shadow:
+      0 0 18px rgba(168, 85, 247, 0.55),
+      0 0 34px rgba(217, 70, 239, 0.25);
   }
 
   .header-box-subtext {
-    @apply text-14 lg:text-16 font-normal text-gray-600 dark:text-slate-400;
+    @apply text-16 lg:text-18 font-normal text-gray-600 dark:text-slate-400;
   }
 
   /* Bank Card */
   .bank-card {
-    @apply relative flex h-[190px] w-full max-w-[320px] justify-between rounded-[20px] border border-white/70 bg-bank-gradient shadow-creditCard backdrop-blur-[6px] hover:-translate-y-2 dark:border-purple-300/20;
+    @apply relative flex h-[190px] w-full max-w-[360px] justify-between rounded-[20px] border-2 border-white/85 bg-bank-gradient shadow-creditCard backdrop-blur-[6px] ring-1 ring-purple-300/30 hover:-translate-y-2 dark:border-purple-200/40 dark:ring-purple-400/35;
     animation: glow-pulse 5s ease-in-out infinite;
   }
 
   .bank-card_content {
-    @apply relative z-10 flex size-full max-w-[228px] flex-col justify-between rounded-l-[20px] bg-gray-700 bg-bank-gradient px-5 pb-4 pt-5;
+    @apply relative z-10 flex size-full max-w-[258px] flex-col justify-between rounded-l-[20px] bg-gray-700 bg-bank-gradient px-5 pb-4 pt-5;
     background-size: 220% 220%;
     animation: gradient-pan 9s ease infinite;
   }
@@ -421,7 +521,7 @@
   }
 
   .plaidlink-ghost {
-    @apply flex !h-auto cursor-pointer items-center justify-center gap-3 rounded-lg px-3 py-3 hover:bg-purple-50 dark:hover:bg-purple-950/40 lg:justify-start;
+    @apply flex !h-auto cursor-pointer items-center justify-center gap-3 rounded-lg px-3 py-2 hover:bg-purple-50 dark:hover:bg-purple-950/40 lg:justify-start;
   }
 
   .plaidlink-default {

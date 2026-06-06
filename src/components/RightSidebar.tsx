@@ -3,6 +3,7 @@ import BankCard from "./BankCard";
 import { countTransactionCategories } from "@/lib/utils";
 import Category from "./Category";
 import PlaidLink from "./PlaidLink";
+import { MoreVertical } from "lucide-react";
 
 const placeholderBanks: Account[] = [
   {
@@ -66,13 +67,13 @@ const RightSidebar = ({ user, transactions, banks }: RightSidebarProps) => {
       </section>
 
       <section className="banks">
-        <div className="flex w-full justify-between">
+        <div className="flex w-full items-center justify-between gap-4">
           <h2 className="header-2">My Banks</h2>
           <PlaidLink user={user} variant="ghost" label="Add Bank" />
         </div>
 
-        <div className="relative flex flex-1 flex-col items-center justify-center gap-5">
-          <div className="relative z-10">
+        <div className="relative flex min-h-[240px] w-full flex-1 flex-col items-center justify-center">
+          <div className="relative z-10 w-full max-w-[360px] -translate-y-3">
             <BankCard
               key={displayedBanks[0].appwriteItemId}
               account={displayedBanks[0]}
@@ -81,7 +82,7 @@ const RightSidebar = ({ user, transactions, banks }: RightSidebarProps) => {
             />
           </div>
           {displayedBanks[1] && (
-            <div className="absolute right-0 top-8 z-0 w-[90%]">
+            <div className="absolute right-0 top-10 z-0 w-full max-w-[360px] translate-x-6">
               <BankCard
                 key={displayedBanks[1].appwriteItemId}
                 account={displayedBanks[1]}
@@ -93,10 +94,19 @@ const RightSidebar = ({ user, transactions, banks }: RightSidebarProps) => {
         </div>
 
         <div className="mt-10 flex flex-1 flex-col gap-6">
-          <h2 className="header-2">Top categories</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="header-2">Top categories</h2>
+            <button
+              type="button"
+              className="rounded-full p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
+              aria-label="More category options"
+            >
+              <MoreVertical size={20} />
+            </button>
+          </div>
 
-          <div className="space-y-5">
-            {categories.map((category) => (
+          <div className="space-y-4">
+            {categories.slice(0, 3).map((category) => (
               <Category key={category.name} category={category} />
             ))}
           </div>
