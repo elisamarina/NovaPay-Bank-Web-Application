@@ -1,0 +1,7 @@
+{
+  "name": "NovaUSD",
+  "symbol": "NOVAUSD",
+  "decimals": 18,
+  "description": "NovaPay's testnet ERC-20 asset used for gateway deposits and staking.",
+  "image": "/token-metadata/novausd-token.png"
+}

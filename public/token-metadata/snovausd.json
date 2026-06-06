@@ -1,0 +1,7 @@
+{
+  "name": "Staked NovaUSD",
+  "symbol": "sNovaUSD",
+  "decimals": 24,
+  "description": "NovaPay's ERC-4626 staking share token representing a proportional claim on NovaUSD held in the vault.",
+  "image": "/token-metadata/snovausd-token.png"
+}
