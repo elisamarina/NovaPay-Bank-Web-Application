@@ -4,6 +4,7 @@ import { countTransactionCategories } from "@/lib/utils";
 import Category from "./Category";
 import PlaidLink from "./PlaidLink";
 import { MoreVertical } from "lucide-react";
+import ProfileImageUploader from "./ProfileImageUploader";
 
 const placeholderBanks: Account[] = [
   {
@@ -40,24 +41,16 @@ const RightSidebar = ({ user, transactions, banks }: RightSidebarProps) => {
   const hasRealBanks = banks?.length > 0;
   const displayName =
     user.name || `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
-  const initials = displayName
-    .split(" ")
-    .filter(Boolean)
-    .map((namePart) => namePart[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 
   return (
     <aside className="right-sidebar">
       <section className="flex flex-col pb-8">
         <div className="profile-banner" />
         <div className="profile">
-          <div className="profile-img">
-            <span className="text-5xl font-bold text-blue-500">
-              {initials || "U"}
-            </span>
-          </div>
+          <ProfileImageUploader
+            displayName={displayName || "User"}
+            imageUrl={user.profileImageUrl}
+          />
 
           <div className="profile-details">
             <h1 className="profile-name">{displayName || "User"}</h1>

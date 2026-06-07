@@ -24,6 +24,11 @@ export const sidebarLinks = [
     route: "/staking",
     label: "Staking",
   },
+  {
+    imgURL: "/icons/edit.svg",
+    route: "/profile",
+    label: "Profile",
+  },
 ];
 
 // good_user / good_password - Bank of America

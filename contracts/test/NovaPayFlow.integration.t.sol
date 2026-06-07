@@ -59,7 +59,7 @@ contract NovaPayFlowIntegrationTest is Test {
         assertEq(vault.balanceOf(user), shares);
 
         INovaPayStakingVault.RewardPreview memory preview = vault.previewReward(stakeAmount, 365 days);
-        assertEq(preview.reward, 70 ether);
+        assertEq(preview.reward, 100 ether);
 
         uint256 sharePriceBefore = vault.sharePrice();
 

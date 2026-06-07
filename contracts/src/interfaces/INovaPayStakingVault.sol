@@ -44,6 +44,34 @@ interface INovaPayStakingVault is IERC4626 {
         uint256 reward;
     }
 
+    /// @notice Reward tier used for per-user staking positions.
+    /// @param id Tier identifier used by frontend displays.
+    /// @param minPrincipal Minimum principal required for the tier.
+    /// @param aprBps Annual percentage rate for the tier in basis points.
+    struct RewardTier {
+        uint8 id;
+        uint256 minPrincipal;
+        uint256 aprBps;
+    }
+
+    /// @notice Frontend-readable on-chain user staking position.
+    /// @param principalAssets Principal NovaUSD tracked for the account.
+    /// @param accruedRewards Estimated rewards already checkpointed for the account.
+    /// @param pendingRewards Additional rewards accrued since the last checkpoint.
+    /// @param totalRewards Total estimated rewards if the account were checkpointed now.
+    /// @param aprBps Active APR for the current tier.
+    /// @param tier Active reward tier id.
+    /// @param lastAccruedAt Last timestamp at which rewards were checkpointed.
+    struct UserPosition {
+        uint256 principalAssets;
+        uint256 accruedRewards;
+        uint256 pendingRewards;
+        uint256 totalRewards;
+        uint256 aprBps;
+        uint8 tier;
+        uint64 lastAccruedAt;
+    }
+
     /// @notice Aggregated vault statistics for dashboards.
     /// @param totalAssets Total NovaUSD assets controlled by the vault.
     /// @param totalShares Total sNovaUSD shares issued by the vault.
@@ -62,6 +90,12 @@ interface INovaPayStakingVault is IERC4626 {
     /// @notice Emitted when the owner updates the target APR.
     event AprUpdated(uint256 oldAprBps, uint256 newAprBps);
 
+    /// @notice Emitted when a reward tier is updated.
+    event RewardTierUpdated(uint8 indexed tier, uint256 minPrincipal, uint256 aprBps);
+
+    /// @notice Emitted when a user's rewards are checkpointed.
+    event PositionAccrued(address indexed account, uint256 accruedRewards, uint256 aprBps, uint8 tier);
+
     /// @notice Returns the current vault configuration.
     function vaultConfig() external view returns (VaultConfig memory config);
 
@@ -78,8 +112,7 @@ interface INovaPayStakingVault is IERC4626 {
     function sharePrice() external view returns (uint256);
 
     /// @notice Previews simple-interest reward for a principal and interval.
-    /// @dev This is an informational helper; actual yield still requires rewards
-    ///      to be funded into the ERC-4626 vault.
+    /// @dev Uses the tier APR selected by the provided principal amount.
     /// @param principal Amount of assets used as the reward base.
     /// @param elapsedTime Time interval in seconds.
     /// @return preview Reward preview including inputs and computed reward.
@@ -88,4 +121,13 @@ interface INovaPayStakingVault is IERC4626 {
     /// @notice Adds reward assets to the vault, increasing share value.
     /// @param assets Amount of NovaUSD rewards to add.
     function fundRewards(uint256 assets) external;
+
+    /// @notice Returns a configured reward tier by id.
+    function rewardTier(uint8 tier) external view returns (RewardTier memory tierConfig);
+
+    /// @notice Returns the on-chain staking position for an account.
+    function positionOf(address account) external view returns (UserPosition memory position);
+
+    /// @notice Returns total estimated rewards if the account were checkpointed now.
+    function previewAccrued(address account) external view returns (uint256);
 }

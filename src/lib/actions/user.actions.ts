@@ -66,6 +66,8 @@ const normalizeUser = (user: AppwriteUserDocument): User => ({
   postalCode: user.postalCode || "",
   dateOfBirth: user.dateOfBirth || "",
   ssn: user.ssn || "",
+  profileImageId: user.profileImageId || "",
+  profileImageUrl: user.profileImageUrl || "",
 });
 
 export const getUserInfo = async ({

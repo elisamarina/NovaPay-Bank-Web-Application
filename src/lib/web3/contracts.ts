@@ -47,6 +47,13 @@ export const novaUSDAbi = [
   },
   {
     type: "function",
+    name: "burn",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "amount", type: "uint256" }],
+    outputs: [],
+  },
+  {
+    type: "function",
     name: "decimals",
     stateMutability: "view",
     inputs: [],
@@ -68,6 +75,16 @@ export const novaUSDAbi = [
     stateMutability: "view",
     inputs: [],
     outputs: [{ name: "", type: "string" }],
+  },
+  {
+    type: "function",
+    name: "transfer",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
   },
 ] as const;
 
@@ -140,6 +157,34 @@ export const novaPayStakingVaultAbi = [
     name: "maxWithdraw",
     stateMutability: "view",
     inputs: [{ name: "owner", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "positionOf",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [
+      {
+        name: "position",
+        type: "tuple",
+        components: [
+          { name: "principalAssets", type: "uint256" },
+          { name: "accruedRewards", type: "uint256" },
+          { name: "pendingRewards", type: "uint256" },
+          { name: "totalRewards", type: "uint256" },
+          { name: "aprBps", type: "uint256" },
+          { name: "tier", type: "uint8" },
+          { name: "lastAccruedAt", type: "uint64" },
+        ],
+      },
+    ],
+  },
+  {
+    type: "function",
+    name: "previewAccrued",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
     outputs: [{ name: "", type: "uint256" }],
   },
   {

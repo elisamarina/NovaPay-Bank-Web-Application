@@ -4,9 +4,9 @@ Foundry workspace for the NovaPay EVM staking system.
 
 Planned contracts:
 
-- `NovaUSD`: ERC-20 testnet asset.
+- `NovaUSD`: ERC-20 testnet asset with user burn support.
 - `NovaPayGateway`: test ETH to NovaUSD gateway.
-- `NovaPayStakingVault`: ERC-4626 vault issuing `sNovaUSD`.
+- `NovaPayStakingVault`: ERC-4626 vault issuing `sNovaUSD` and tracking per-user reward tiers/accrued rewards.
 - `InterestRateMath`: deterministic APR math library.
 
 ## Commands
@@ -96,6 +96,18 @@ NEXT_PUBLIC_NOVAPAY_NOVAUSD_ADDRESS=...
 NEXT_PUBLIC_NOVAPAY_GATEWAY_ADDRESS=...
 NEXT_PUBLIC_NOVAPAY_STAKING_VAULT_ADDRESS=...
 ```
+
+After deploying a vault with on-chain position tracking, the reward reserve funds yield with `fundRewards(assets)`. Funded NovaUSD becomes part of ERC-4626 `totalAssets`, increasing the `sNovaUSD` share price. Users realize that yield when they redeem shares; there is no separate reward-claim transfer from the reserve.
+
+`NovaUSD` includes `burn`/`burnFrom` through OpenZeppelin `ERC20Burnable`. The app cash-out flow burns NovaUSD on-chain, then credits app USD in the backend ledger.
+
+The default reward tiers are:
+
+| Tier | Principal threshold | APR |
+| --- | ---: | ---: |
+| Starter | 0 NOVAUSD | 4% |
+| Growth | 100 NOVAUSD | 7% |
+| Prime | 1,000 NOVAUSD | 10% |
 
 ## Dependencies
 

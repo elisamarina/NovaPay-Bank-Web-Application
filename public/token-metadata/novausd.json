@@ -2,6 +2,9 @@
   "name": "NovaUSD",
   "symbol": "NOVAUSD",
   "decimals": 18,
-  "description": "NovaPay's testnet ERC-20 asset used for gateway deposits and staking.",
-  "image": "/token-metadata/novausd-token.png"
+  "chainId": 84532,
+  "address": "0x9d8c401729329eD0519F3A0b58beA6dE03F5C586",
+  "logoURI": "ipfs://bafybeieeo3saecpatlclesfw6ahgqo3vke2vo4olqhkskjoymmpo4nldha",
+  "external_url": "https://tomato-permanent-cobra-513.mypinata.cloud/ipfs/bafkreigw576bj6bshpqxvdr55uv7ly2nw7j2563cktgdgucthdc5xnhnly",
+  "description": "NovaUSD is the testnet NovaPay settlement asset used for app USD checkout, Base Sepolia gateway minting, and staking."
 }

@@ -54,6 +54,20 @@ contract NovaUSDTest is Test {
         assertEq(novaUSD.totalSupply(), 100 ether);
     }
 
+    function testUserCanBurnNovaUSD() public {
+        vm.prank(owner);
+        novaUSD.setMinter(minter, true);
+
+        vm.prank(minter);
+        novaUSD.mint(user, 100 ether);
+
+        vm.prank(user);
+        novaUSD.burn(40 ether);
+
+        assertEq(novaUSD.balanceOf(user), 60 ether);
+        assertEq(novaUSD.totalSupply(), 60 ether);
+    }
+
     function testUnauthorizedMinterCannotMint() public {
         vm.prank(user);
         vm.expectRevert(abi.encodeWithSelector(NovaUSD.UnauthorizedMinter.selector, user));

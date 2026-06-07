@@ -989,11 +989,11 @@
 
   /* Footer */
   .footer {
-    @apply flex cursor-pointer items-center justify-between gap-2 py-6;
+    @apply flex items-center justify-between gap-2 py-6;
   }
 
   .footer_name {
-    @apply flex size-10 items-center justify-center rounded-full bg-gray-200 dark:bg-slate-800 max-xl:hidden;
+    @apply relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-slate-800;
   }
 
   .footer_email {
@@ -1001,7 +1001,7 @@
   }
 
   .footer_name-mobile {
-    @apply flex size-10 items-center justify-center rounded-full bg-gray-200 dark:bg-slate-800;
+    @apply relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200 dark:bg-slate-800;
   }
 
   .footer_email-mobile {

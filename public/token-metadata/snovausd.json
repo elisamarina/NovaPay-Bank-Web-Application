@@ -2,6 +2,9 @@
   "name": "Staked NovaUSD",
   "symbol": "sNovaUSD",
   "decimals": 24,
-  "description": "NovaPay's ERC-4626 staking share token representing a proportional claim on NovaUSD held in the vault.",
-  "image": "/token-metadata/snovausd-token.png"
+  "chainId": 84532,
+  "address": "0x2bdF56d0011dF5E135D2d7B0014d92f7dF892FE1",
+  "logoURI": "ipfs://bafybeiddvf2qbdcd6xzdescpkb654nr42srukb4revsltd3oyqsotrg6ha",
+  "external_url": "https://tomato-permanent-cobra-513.mypinata.cloud/ipfs/bafkreiatod4b4dyepze556hjwmem6y3tilgohqzpym4wxexdt4y36jwapu",
+  "description": "sNovaUSD is the ERC-4626 staking receipt token for NovaUSD deposits in the NovaPay staking vault."
 }

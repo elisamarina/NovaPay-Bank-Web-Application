@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   alchemyWalletTransport,
@@ -68,11 +68,37 @@ type StakingDashboardProps = {
   accounts: Account[];
 };
 
+type OffchainStakePosition = {
+  accrued: string;
+  accruedNow: string;
+  aprBps: string;
+  configured: boolean;
+  lastAccruedAt: string;
+  positionValue: string;
+  principal: string;
+  smartAccount: string;
+  tier: string;
+  tierLabel: string;
+  updatedAt: number;
+};
+
+type OnchainStakePosition = {
+  principalAssets: bigint;
+  accruedRewards: bigint;
+  pendingRewards: bigint;
+  totalRewards: bigint;
+  aprBps: bigint;
+  tier: number;
+  lastAccruedAt: number;
+};
+
 const ZERO = BigInt(0);
+const BPS = BigInt(10_000);
 const YEAR_IN_SECONDS = BigInt(365 * 24 * 60 * 60);
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 const SMART_ACCOUNT_STORAGE_KEY = "novapay.stakingSmartAccount";
 const EMPTY_ADDRESS = "0x0000000000000000000000000000000000000000" as const;
+const REWARD_TIER_LABELS = ["Starter", "Growth", "Prime"] as const;
 
 const getResult = <T,>(data: unknown, index: number) =>
   Array.isArray(data) ? (data[index] as ReadResult<T> | undefined)?.result : undefined;
@@ -90,10 +116,38 @@ const getStoredSmartAccountAddress = () => {
     : null;
 };
 
+const parseBigIntValue = (value: string | undefined) => {
+  try {
+    return BigInt(value ?? "0");
+  } catch {
+    return ZERO;
+  }
+};
+
+const calculateAccruedInterest = (
+  position: OffchainStakePosition,
+  nowSeconds: number,
+) => {
+  const principal = parseBigIntValue(position.principal);
+  const accrued = parseBigIntValue(position.accruedNow ?? position.accrued);
+  const aprBps = parseBigIntValue(position.aprBps);
+  const elapsedSeconds = Math.max(nowSeconds - position.updatedAt, 0);
+
+  if (principal === ZERO || aprBps === ZERO || elapsedSeconds === 0) {
+    return accrued;
+  }
+
+  return (
+    accrued +
+    (principal * aprBps * BigInt(elapsedSeconds)) / (BPS * YEAR_IN_SECONDS)
+  );
+};
+
 const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
   const router = useRouter();
   const [ethAmount, setEthAmount] = useState("0.001");
   const [usdAmount, setUsdAmount] = useState("10");
+  const [sellAmount, setSellAmount] = useState("10");
   const [stakeAmount, setStakeAmount] = useState("10");
   const [redeemAmount, setRedeemAmount] = useState("");
   const [mintPaymentSource, setMintPaymentSource] =
@@ -102,10 +156,14 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
     accounts[0]?.appwriteItemId ?? "",
   );
   const [localUsdDebits, setLocalUsdDebits] = useState<Record<string, number>>({});
+  const [localUsdCredits, setLocalUsdCredits] = useState<Record<string, number>>({});
   const [stakingAccountRequested, setStakingAccountRequested] = useState(false);
   const [smartAccountAddress, setSmartAccountAddress] = useState<Address | null>(null);
   const [smartWalletClient, setSmartWalletClient] =
     useState<SmartWalletClient | null>(null);
+  const [stakingPosition, setStakingPosition] =
+    useState<OffchainStakePosition | null>(null);
+  const [nowSeconds, setNowSeconds] = useState(() => Math.floor(Date.now() / 1000));
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [lastNotice, setLastNotice] = useState<string | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
@@ -126,6 +184,33 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
     },
   });
 
+  const fetchStakingPosition = useCallback(async () => {
+    if (!smartAccountAddress) {
+      setStakingPosition(null);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/novapay/staking/position?account=${smartAccountAddress}`,
+      );
+      const result = (await response.json()) as {
+        error?: string;
+        position?: OffchainStakePosition;
+      };
+
+      if (!response.ok || !result.position) {
+        throw new Error(result.error ?? "Could not load staking position.");
+      }
+
+      setStakingPosition(result.position);
+    } catch (error) {
+      setLastError(
+        error instanceof Error ? error.message : "Could not load staking position.",
+      );
+    }
+  }, [smartAccountAddress]);
+
   useEffect(() => {
     const storedSmartAccountAddress = getStoredSmartAccountAddress();
 
@@ -135,6 +220,28 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
     setSmartAccountAddress(storedSmartAccountAddress);
   }, []);
 
+  useEffect(() => {
+    void fetchStakingPosition();
+  }, [fetchStakingPosition]);
+
+  useEffect(() => {
+    if (!smartAccountAddress) return;
+
+    const interval = window.setInterval(() => {
+      void fetchStakingPosition();
+    }, 15_000);
+
+    return () => window.clearInterval(interval);
+  }, [fetchStakingPosition, smartAccountAddress]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setNowSeconds(Math.floor(Date.now() / 1000));
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
   const ethAmountParsed = useMemo(
     () => parseTokenAmount(ethAmount, NOVAUSD_DECIMALS),
     [ethAmount],
@@ -142,6 +249,10 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
   const usdAmountParsed = useMemo(
     () => parseTokenAmount(usdAmount, NOVAUSD_DECIMALS),
     [usdAmount],
+  );
+  const sellAmountParsed = useMemo(
+    () => parseTokenAmount(sellAmount, NOVAUSD_DECIMALS),
+    [sellAmount],
   );
   const stakeAmountParsed = useMemo(
     () => parseTokenAmount(stakeAmount, NOVAUSD_DECIMALS),
@@ -229,6 +340,18 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
         functionName: "previewReward",
         args: [depositPreviewAmount ?? ZERO, YEAR_IN_SECONDS],
       },
+      {
+        address: novaPayAddresses.stakingVault,
+        abi: novaPayStakingVaultAbi,
+        functionName: "positionOf",
+        args: [accountForReads],
+      },
+      {
+        address: novaPayAddresses.stakingVault,
+        abi: novaPayStakingVaultAbi,
+        functionName: "previewAccrued",
+        args: [accountForReads],
+      },
     ],
     query: {
       enabled: canReadContracts,
@@ -282,10 +405,13 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
   const rewardPreview = getResult<{
     reward: bigint;
   }>(data, 9);
+  const onchainPosition = getResult<OnchainStakePosition>(data, 10);
+  const onchainAccruedRewards = getResult<bigint>(data, 11);
   const getDisplayedUsdBalance = (account: Account) => {
     const localDebit = localUsdDebits[account.appwriteItemId] ?? 0;
+    const localCredit = localUsdCredits[account.appwriteItemId] ?? 0;
 
-    return Math.max(account.currentBalance - localDebit, 0);
+    return Math.max(account.currentBalance - localDebit + localCredit, 0);
   };
 
   const needsApproval =
@@ -304,6 +430,10 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
     appUsdBalance !== undefined &&
     Number.isFinite(appUsdAmountNumber) &&
     appUsdAmountNumber > appUsdBalance;
+  const sellNeedsBalance =
+    isPositive(sellAmountParsed) &&
+    novaUsdBalance !== undefined &&
+    novaUsdBalance < sellAmountParsed;
   const selectedMintBalance =
     mintPaymentSource === "smartAccount" ? ethBalance?.value : walletEthBalance?.value;
   const selectedMintPayer =
@@ -365,6 +495,30 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
           mintQuote.priceDecimals,
           2,
         )}`;
+  const hasOnchainPosition = Boolean(onchainPosition && smartAccountAddress);
+  const trackedPrincipal = onchainPosition
+    ? onchainPosition.principalAssets
+    : stakingPosition
+      ? parseBigIntValue(stakingPosition.principal)
+      : ZERO;
+  const estimatedAccruedInterest =
+    onchainAccruedRewards ??
+    (stakingPosition
+      ? calculateAccruedInterest(stakingPosition, nowSeconds)
+      : ZERO);
+  const estimatedPositionValue = trackedPrincipal + estimatedAccruedInterest;
+  const userAprBps = onchainPosition
+    ? onchainPosition.aprBps
+    : stakingPosition
+      ? parseBigIntValue(stakingPosition.aprBps)
+      : undefined;
+  const estimatedDailyRewards =
+    userAprBps === undefined
+      ? undefined
+      : (trackedPrincipal * userAprBps) / (BPS * BigInt(365));
+  const rewardTierLabel = onchainPosition
+    ? (REWARD_TIER_LABELS[onchainPosition.tier] ?? `Tier ${onchainPosition.tier}`)
+    : stakingPosition?.tierLabel;
 
   const authorizeOwnerWallet = async () => {
     setLastError(null);
@@ -402,7 +556,7 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
 
     try {
       if (!ALCHEMY_API_KEY) {
-        setLastError("Set NEXT_PUBLIC_ALCHEMY_API_KEY in .env.local first.");
+        setLastError("Set NEXT_PUBLIC_ALCHEMY_API_KEY in .env first.");
         return;
       }
 
@@ -448,7 +602,7 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
 
   const getSmartWalletClient = async () => {
     if (!ALCHEMY_API_KEY) {
-      throw new Error("Set NEXT_PUBLIC_ALCHEMY_API_KEY in .env.local first.");
+      throw new Error("Set NEXT_PUBLIC_ALCHEMY_API_KEY in .env first.");
     }
     if (!walletClient) {
       throw new Error("Create the staking account before sending transactions.");
@@ -501,6 +655,63 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
 
     await client.waitForCallsStatus({ id: result.id });
     void refetch();
+  };
+
+  const recordStakeDeposit = async (amount: bigint) => {
+    if (!smartAccountAddress) {
+      throw new Error("Create a staking account first.");
+    }
+
+    const response = await fetch("/api/novapay/staking/record-deposit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: amount.toString(),
+        smartAccount: smartAccountAddress,
+      }),
+    });
+    const result = (await response.json()) as {
+      error?: string;
+      position?: OffchainStakePosition;
+    };
+
+    if (!response.ok || !result.position) {
+      throw new Error(result.error ?? "Could not record staking deposit.");
+    }
+
+    setStakingPosition(result.position);
+  };
+
+  const recordStakeRedeem = async (assets: bigint | undefined) => {
+    if (!smartAccountAddress) {
+      throw new Error("Create a staking account first.");
+    }
+    if (!assets || assets <= ZERO) {
+      throw new Error("Could not estimate redeemed NovaUSD assets.");
+    }
+
+    const response = await fetch("/api/novapay/staking/record-redeem", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        assets: assets.toString(),
+        smartAccount: smartAccountAddress,
+      }),
+    });
+    const result = (await response.json()) as {
+      error?: string;
+      position?: OffchainStakePosition;
+    };
+
+    if (!response.ok || !result.position) {
+      throw new Error(result.error ?? "Could not record staking redeem.");
+    }
+
+    setStakingPosition(result.position);
   };
 
   const depositEthFromSmartAccount = () => {
@@ -595,6 +806,59 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
     depositEthFromWallet();
   };
 
+  const sellNovaUsd = () => {
+    const novaUSD = novaPayAddresses.novaUSD;
+    const amount = sellAmountParsed;
+
+    if (
+      !novaUSD ||
+      !smartAccountAddress ||
+      !selectedBankAccount ||
+      !isPositive(amount)
+    ) {
+      return;
+    }
+
+    void runTransaction("Selling NovaUSD", async () => {
+      await sendSmartCalls([
+        {
+          to: novaUSD,
+          data: encodeFunctionData({
+            abi: novaUSDAbi,
+            functionName: "burn",
+            args: [amount],
+          }),
+        },
+      ]);
+
+      const response = await fetch("/api/novapay/redeem", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: sellAmount,
+          bankId: selectedBankAccount.appwriteItemId,
+          source: smartAccountAddress,
+        }),
+      });
+      const result = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        throw new Error(result.error ?? "NovaUSD sale could not be recorded.");
+      }
+
+      setLocalUsdCredits((currentCredits) => ({
+        ...currentCredits,
+        [selectedBankAccount.appwriteItemId]:
+          (currentCredits[selectedBankAccount.appwriteItemId] ?? 0) +
+          Number(sellAmount),
+      }));
+      router.refresh();
+      await refetch();
+    });
+  };
+
   const approveStake = () => {
     const novaUSD = novaPayAddresses.novaUSD;
     const stakingVault = novaPayAddresses.stakingVault;
@@ -624,8 +888,8 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
       return;
     }
 
-    void runTransaction("Staking NovaUSD", () =>
-      sendSmartCalls([
+    void runTransaction("Staking NovaUSD", async () => {
+      await sendSmartCalls([
         {
           to: stakingVault,
           data: encodeFunctionData({
@@ -634,8 +898,14 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
             args: [amount, smartAccountAddress],
           }),
         },
-      ]),
-    );
+      ]);
+      if (hasOnchainPosition) {
+        await refetch();
+        void fetchStakingPosition();
+        return;
+      }
+      await recordStakeDeposit(amount);
+    });
   };
 
   const redeemShares = () => {
@@ -646,8 +916,8 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
       return;
     }
 
-    void runTransaction("Redeeming sNovaUSD", () =>
-      sendSmartCalls([
+    void runTransaction("Redeeming sNovaUSD", async () => {
+      await sendSmartCalls([
         {
           to: stakingVault,
           data: encodeFunctionData({
@@ -656,8 +926,14 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
             args: [amount, smartAccountAddress, smartAccountAddress],
           }),
         },
-      ]),
-    );
+      ]);
+      if (hasOnchainPosition) {
+        await refetch();
+        void fetchStakingPosition();
+        return;
+      }
+      await recordStakeRedeem(previewRedeemAssets);
+    });
   };
 
   return (
@@ -790,7 +1066,7 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
           <StatusPanel
             tone="warning"
             title="Contract addresses missing"
-            body="Set NEXT_PUBLIC_NOVAPAY_NOVAUSD_ADDRESS, NEXT_PUBLIC_NOVAPAY_GATEWAY_ADDRESS, and NEXT_PUBLIC_NOVAPAY_STAKING_VAULT_ADDRESS in .env.local."
+            body="Set NEXT_PUBLIC_NOVAPAY_NOVAUSD_ADDRESS, NEXT_PUBLIC_NOVAPAY_GATEWAY_ADDRESS, and NEXT_PUBLIC_NOVAPAY_STAKING_VAULT_ADDRESS in .env."
           />
         )}
 
@@ -802,6 +1078,14 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
           <StatusPanel tone="info" title="Staking account" body={lastNotice} />
         )}
 
+        {stakingPosition && !stakingPosition.configured && (
+          <StatusPanel
+            tone="warning"
+            title="Fallback rewards cache not configured"
+            body="Create the Appwrite staking position collection and set APPWRITE_STAKING_POSITION_COLLECTION_ID if you need fallback tracking before the on-chain vault redeploy."
+          />
+        )}
+
         {transactionBusy && (
           <StatusPanel
             tone="info"
@@ -810,7 +1094,7 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
           />
         )}
 
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             icon={<Wallet />}
             label="Staking account ETH"
@@ -828,7 +1112,7 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
           />
           <MetricCard
             icon={<Landmark />}
-            label="Target APR"
+            label="Reference APR"
             value={formatBps(vaultStats?.aprBps ?? vaultConfig?.aprBps)}
           />
           <MetricCard
@@ -836,9 +1120,38 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
             label="Share price"
             value={`${formatTokenAmount(vaultStats?.sharePrice, NOVAUSD_DECIMALS, 6)} NOVAUSD`}
           />
+          <MetricCard
+            icon={<Landmark />}
+            label="Reward tier"
+            value={
+              rewardTierLabel
+                ? `${rewardTierLabel} · ${formatBps(userAprBps)}`
+                : "-"
+            }
+          />
+          <MetricCard
+            icon={<Landmark />}
+            label="Tracked principal"
+            value={`${formatTokenAmount(trackedPrincipal, NOVAUSD_DECIMALS)} NOVAUSD`}
+          />
+          <MetricCard
+            icon={<ArrowDownUp />}
+            label="Est. accrued interest"
+            value={`${formatTokenAmount(estimatedAccruedInterest, NOVAUSD_DECIMALS, 8)} NOVAUSD`}
+          />
+          <MetricCard
+            icon={<ArrowDownUp />}
+            label="Est. rewards/day"
+            value={`${formatTokenAmount(estimatedDailyRewards, NOVAUSD_DECIMALS, 6)} NOVAUSD`}
+          />
+          <MetricCard
+            icon={<ShieldCheck />}
+            label="Est. position value"
+            value={`${formatTokenAmount(estimatedPositionValue, NOVAUSD_DECIMALS, 8)} NOVAUSD`}
+          />
         </div>
 
-        <div className="grid gap-5 xl:grid-cols-[1fr_1fr_1fr]">
+        <div className="grid gap-5 xl:grid-cols-2 2xl:grid-cols-4">
           <ActionCard
             title="Mint NovaUSD"
             description="Choose between app USD checkout and the ETH gateway that is already deployed on Base Sepolia."
@@ -991,6 +1304,80 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
           </ActionCard>
 
           <ActionCard
+            title="Sell NovaUSD"
+            description="Burn NovaUSD from the staking account and credit the selected app funding account."
+          >
+            <label className="flex flex-col gap-2">
+              <span className="text-14 font-medium text-gray-700 dark:text-slate-300">
+                Cash destination
+              </span>
+              <select
+                value={selectedBankAccount?.appwriteItemId ?? ""}
+                onChange={(event) => setSelectedBankId(event.target.value)}
+                className="h-11 rounded-lg border border-gray-300 bg-white px-3 text-14 font-medium text-gray-900 outline-none focus:border-bankGradient focus:ring-2 focus:ring-purple-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50 dark:focus:ring-purple-950"
+                disabled={!accounts.length}
+              >
+                {!accounts.length && <option value="">No app funding accounts</option>}
+                {accounts.map((account) => (
+                  <option
+                    key={account.appwriteItemId || account.id}
+                    value={account.appwriteItemId}
+                  >
+                    {account.name} · {formatAmount(getDisplayedUsdBalance(account))}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <AmountInput
+              label="NovaUSD amount"
+              value={sellAmount}
+              onChange={setSellAmount}
+              suffix="NOVAUSD"
+            />
+            <InfoRow
+              label="Source"
+              value={
+                smartAccountAddress
+                  ? compactAddress(smartAccountAddress)
+                  : "Create staking account"
+              }
+            />
+            <InfoRow
+              label="Available NovaUSD"
+              value={`${formatTokenAmount(novaUsdBalance, NOVAUSD_DECIMALS)} NOVAUSD`}
+            />
+            <InfoRow
+              label="Expected app USD"
+              value={`${formatTokenAmount(sellAmountParsed ?? undefined, NOVAUSD_DECIMALS)} USD`}
+            />
+            <Button
+              type="button"
+              className="mt-2 w-full"
+              disabled={
+                !isConnected ||
+                !smartAccountAddress ||
+                !isCorrectChain ||
+                !selectedBankAccount ||
+                !isPositive(sellAmountParsed) ||
+                sellNeedsBalance ||
+                transactionBusy
+              }
+              onClick={sellNovaUsd}
+            >
+              {transactionBusy && pendingAction === "Selling NovaUSD" && (
+                <Loader2 className="animate-spin" />
+              )}
+              Sell NovaUSD
+            </Button>
+            {sellNeedsBalance && (
+              <p className="text-12 font-medium text-orange-600 dark:text-orange-300">
+                Staking account does not have enough NovaUSD to sell this
+                amount.
+              </p>
+            )}
+          </ActionCard>
+
+          <ActionCard
             title="Stake NovaUSD"
             description="Approve NovaUSD, then deposit it into the ERC-4626 vault."
           >
@@ -1011,6 +1398,10 @@ const StakingDashboard = ({ accounts }: StakingDashboardProps) => {
             <InfoRow
               label="1 year reward preview"
               value={`${formatTokenAmount(rewardPreview?.reward, NOVAUSD_DECIMALS)} NOVAUSD`}
+            />
+            <InfoRow
+              label="Estimated accrued"
+              value={`${formatTokenAmount(estimatedAccruedInterest, NOVAUSD_DECIMALS, 8)} NOVAUSD`}
             />
             <div className="mt-2 grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
               <Button
