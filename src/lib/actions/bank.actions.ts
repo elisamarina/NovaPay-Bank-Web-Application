@@ -10,6 +10,21 @@ import { parseStringify } from "../utils";
 import { getTransactionsByBankId } from "./transaction.actions";
 import { getBanks, getBank } from "./user.actions";
 
+const applyLocalDebit = (balance: number | null | undefined, debit: number) =>
+  Math.max(Number(balance || 0) - debit, 0);
+
+const getLocalOutgoingDebit = async (bankId: string) => {
+  const transferTransactionsData = await getTransactionsByBankId({ bankId });
+  const transferDocuments =
+    (transferTransactionsData.documents as Transaction[]) || [];
+
+  return transferDocuments.reduce((total, transaction) => {
+    return transaction.senderBankId === bankId
+      ? total + Number(transaction.amount || 0)
+      : total;
+  }, 0);
+};
+
 // Get multiple bank accounts
 export const getAccounts = async ({ userId, authUserId }: getAccountsProps) => {
   try {
@@ -35,10 +50,20 @@ export const getAccounts = async ({ userId, authUserId }: getAccountsProps) => {
 
         if (!institution) throw new Error("Institution not found");
 
+        const localDebit = await getLocalOutgoingDebit(bank.$id);
+        const currentBalance = applyLocalDebit(
+          accountData.balances.current,
+          localDebit,
+        );
+        const availableBalance = applyLocalDebit(
+          accountData.balances.available ?? accountData.balances.current,
+          localDebit,
+        );
+
         const account: Account = {
           id: accountData.account_id,
-          availableBalance: accountData.balances.available!,
-          currentBalance: accountData.balances.current!,
+          availableBalance,
+          currentBalance,
           institutionId: institution.institution_id,
           name: accountData.name,
           officialName: accountData.official_name || accountData.name,
@@ -90,6 +115,11 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
 
     const transferDocuments =
       (transferTransactionsData.documents as Transaction[]) || [];
+    const localDebit = transferDocuments.reduce((total, transaction) => {
+      return transaction.senderBankId === bank.$id
+        ? total + Number(transaction.amount || 0)
+        : total;
+    }, 0);
 
     const transferTransactions = transferDocuments.map((transferData) => ({
       id: transferData.$id,
@@ -124,8 +154,11 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
 
     const account: Account = {
       id: accountData.account_id,
-      availableBalance: accountData.balances.available!,
-      currentBalance: accountData.balances.current!,
+      availableBalance: applyLocalDebit(
+        accountData.balances.available ?? accountData.balances.current,
+        localDebit,
+      ),
+      currentBalance: applyLocalDebit(accountData.balances.current, localDebit),
       institutionId: institution.institution_id,
       name: accountData.name,
       officialName: accountData.official_name || accountData.name,

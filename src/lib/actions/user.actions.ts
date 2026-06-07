@@ -36,6 +36,11 @@ const cookieOptions = {
   secure: process.env.NODE_ENV === "production",
 };
 
+const getSessionCookieOptions = (expiresAt: string) => ({
+  ...cookieOptions,
+  expires: new Date(expiresAt),
+});
+
 type AppwriteUserDocument = Partial<User> & {
   ID?: string;
   FirstName?: string;
@@ -94,7 +99,11 @@ export const signIn = async ({
     });
 
     const cookieStore = await cookies();
-    cookieStore.set("appwrite-session", session.secret, cookieOptions);
+    cookieStore.set(
+      "appwrite-session",
+      session.secret,
+      getSessionCookieOptions(session.expire),
+    );
 
     const user = await getUserInfo({ userId: session.userId });
 
@@ -163,7 +172,11 @@ export const signUp = async ({
     });
 
     const cookieStore = await cookies();
-    cookieStore.set("appwrite-session", session.secret, cookieOptions);
+    cookieStore.set(
+      "appwrite-session",
+      session.secret,
+      getSessionCookieOptions(session.expire),
+    );
 
     return { user: normalizeUser(parseStringify(newUser)) };
   } catch (error) {

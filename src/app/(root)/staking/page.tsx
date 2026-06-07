@@ -1,21 +1,27 @@
-import React from "react";
+import StakingDashboard from "@/components/staking/StakingDashboard";
+import { getAccounts } from "@/lib/actions/bank.actions";
+import { getLoggedInUser } from "@/lib/actions/user.actions";
+import { redirect } from "next/navigation";
 
-const Staking = () => {
-  return (
-    <section className="staking-page">
-      <div className="staking-panel">
-        <p className="staking-eyebrow">Coming soon</p>
-        <h1 className="staking-title">NovaPay Staking</h1>
-        <p className="staking-copy">
-          Placeholder pentru viitoarea functionalitate de staking. Nu exista
-          inca wallet connection, chain selection sau smart contract calls.
-        </p>
-        <button type="button" className="staking-button" disabled>
-          Staking inactive
-        </button>
-      </div>
-    </section>
-  );
+type AccountsResult = {
+  data: Account[];
+  totalBanks: number;
+  totalCurrentBalance: number;
+};
+
+const Staking = async () => {
+  const loggedIn = (await getLoggedInUser()) as User | null;
+
+  if (!loggedIn) {
+    redirect("/sign-in");
+  }
+
+  const accounts = (await getAccounts({
+    userId: loggedIn.$id,
+    authUserId: loggedIn.userId,
+  })) as AccountsResult | undefined;
+
+  return <StakingDashboard accounts={accounts?.data ?? []} />;
 };
 
 export default Staking;

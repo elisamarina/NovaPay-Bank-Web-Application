@@ -5,7 +5,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <main className="flex min-h-screen w-full justify-between font-inter">
+    <main className="flex min-h-screen w-full justify-between bg-white font-inter text-gray-900 dark:bg-slate-950 dark:text-slate-50">
       {children}
       <div className="auth-asset">
         <div>

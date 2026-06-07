@@ -14,16 +14,18 @@ export default async function RootLayout({
   if (!loggedIn) redirect("/sign-in");
 
   return (
-    <main className="flex h-screen w-full font-inter">
+    <main className="flex h-screen w-full overflow-hidden bg-gray-25 font-inter dark:bg-slate-950">
       <Sidebar user={loggedIn} />
-      <div className="flex size-full flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-gray-25 dark:bg-slate-950">
         <div className="root-layout">
           <Image src="/icons/logo.svg" alt="NovaPay logo" width={30} height={30} />
           <div>
             <MobileBar user={loggedIn} />
           </div>
         </div>
-        {children}
+        <div className="min-h-0 flex-1 overflow-hidden bg-gray-25 dark:bg-slate-950">
+          {children}
+        </div>
       </div>
     </main>
   );

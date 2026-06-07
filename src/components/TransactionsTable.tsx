@@ -30,30 +30,39 @@ const CategoryBadge = ({ category }: CategoryBadgeProps) => {
   );
 };
 
-const TransactionsTable = ({ transactions }: TransactionTableProps) => {
+const TransactionsTable = ({ compact = false, transactions }: TransactionTableProps) => {
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-950/70 dark:shadow-none">
-      <Table>
+    <div
+      className={cn(
+        "min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-950/70 dark:shadow-none",
+        compact && "[&_[data-slot=table-container]]:overflow-x-hidden",
+      )}
+    >
+      <Table className={cn(compact && "table-fixed")}>
         <TableHeader className="bg-[#f9fafb] dark:bg-slate-900/90">
           <TableRow className="dark:border-slate-800">
             <TableHead className="px-4 text-gray-700 dark:text-slate-300">
               Transaction
             </TableHead>
-            <TableHead className="px-4 text-gray-700 dark:text-slate-300">
+            <TableHead className="w-[112px] px-4 text-gray-700 dark:text-slate-300">
               Amount
             </TableHead>
-            <TableHead className="px-4 text-gray-700 dark:text-slate-300">
+            <TableHead className="w-[132px] px-4 text-gray-700 dark:text-slate-300">
               Status
             </TableHead>
-            <TableHead className="px-4 text-gray-700 dark:text-slate-300">
+            <TableHead className="w-[124px] px-4 text-gray-700 dark:text-slate-300">
               Date
             </TableHead>
-            <TableHead className="px-4 text-gray-700 dark:text-slate-300 max-md:hidden">
-              Channel
-            </TableHead>
-            <TableHead className="px-4 text-gray-700 dark:text-slate-300 max-md:hidden">
-              Category
-            </TableHead>
+            {!compact && (
+              <>
+                <TableHead className="px-4 text-gray-700 dark:text-slate-300 max-md:hidden">
+                  Channel
+                </TableHead>
+                <TableHead className="px-4 text-gray-700 dark:text-slate-300 max-md:hidden">
+                  Category
+                </TableHead>
+              </>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -72,8 +81,8 @@ const TransactionsTable = ({ transactions }: TransactionTableProps) => {
                 key={t.id}
                 className={`${isDebit || amount[0] === "-" ? "bg-[#FFFBFA] hover:!bg-[#FFF4F2] dark:bg-rose-950/10 dark:hover:!bg-rose-950/20" : "bg-[#F6FEF9] hover:!bg-[#EDFCF2] dark:bg-emerald-950/10 dark:hover:!bg-emerald-950/20"} !border-b dark:border-slate-800/80`}
               >
-                <TableCell className="max-w-[250px] px-4">
-                  <div className="flex items-center gap-3">
+                <TableCell className="min-w-0 px-4">
+                  <div className="flex min-w-0 items-center gap-3">
                     <h1 className="text-14 truncate font-semibold text-[#344054] dark:text-slate-100">
                       {removeSpecialCharacters(t.name)}
                     </h1>
@@ -94,17 +103,23 @@ const TransactionsTable = ({ transactions }: TransactionTableProps) => {
                   <CategoryBadge category={status} />
                 </TableCell>
 
-                <TableCell className="min-w-32 px-4 text-gray-700 dark:text-slate-300">
-                  {formatDateTime(new Date(t.date)).dateTime}
+                <TableCell className="px-4 text-gray-700 dark:text-slate-300">
+                  {compact
+                    ? formatDateTime(new Date(t.date)).dateOnly
+                    : formatDateTime(new Date(t.date)).dateTime}
                 </TableCell>
 
-                <TableCell className="min-w-24 px-4 capitalize text-gray-700 dark:text-slate-300">
-                  {t.paymentChannel}
-                </TableCell>
+                {!compact && (
+                  <>
+                    <TableCell className="min-w-24 px-4 capitalize text-gray-700 dark:text-slate-300">
+                      {t.paymentChannel}
+                    </TableCell>
 
-                <TableCell className="px-4 max-md:hidden">
-                  <CategoryBadge category={category} />
-                </TableCell>
+                    <TableCell className="px-4 max-md:hidden">
+                      <CategoryBadge category={category} />
+                    </TableCell>
+                  </>
+                )}
               </TableRow>
             );
           })}

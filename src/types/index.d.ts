@@ -256,6 +256,7 @@ declare interface CategoryBadgeProps {
 
 declare interface TransactionTableProps {
   transactions: Transaction[];
+  compact?: boolean;
 }
 
 declare interface CategoryProps {

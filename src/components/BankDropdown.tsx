@@ -65,7 +65,7 @@ export const BankDropdown = ({
       disabled={!accounts.length}
     >
       <SelectTrigger
-        className={`flex w-full bg-white gap-3 md:w-[300px] ${otherStyles}`}
+        className={`flex w-full gap-3 bg-white text-gray-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 md:w-[300px] ${otherStyles}`}
       >
         <Image
           src="/icons/credit-card.svg"
@@ -78,22 +78,22 @@ export const BankDropdown = ({
         </p>
       </SelectTrigger>
       <SelectContent
-        className={`w-full bg-white md:w-[300px] ${otherStyles}`}
+        className={`w-full bg-white text-gray-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 md:w-[300px] ${otherStyles}`}
         align="end"
       >
         <SelectGroup>
-          <SelectLabel className="py-2 font-normal text-gray-500">
+          <SelectLabel className="py-2 font-normal text-gray-500 dark:text-slate-400">
             Select a bank to display
           </SelectLabel>
           {accounts.map((account: Account) => (
             <SelectItem
               key={account.appwriteItemId || account.id}
               value={account.appwriteItemId}
-              className="cursor-pointer border-t"
+              className="cursor-pointer border-t border-gray-200 dark:border-slate-800"
             >
               <div className="flex flex-col ">
                 <p className="text-16 font-medium">{account.name}</p>
-                <p className="text-14 font-medium text-blue-600">
+                <p className="text-14 font-medium text-blue-600 dark:text-blue-300">
                   {formatAmount(account.currentBalance)}
                 </p>
               </div>

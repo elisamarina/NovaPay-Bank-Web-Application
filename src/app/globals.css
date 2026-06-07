@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @layer base {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
   :root {
     --font-inter: Arial, Helvetica, sans-serif;
     --font-ibm-plex-serif: Georgia, "Times New Roman", serif;
@@ -283,12 +288,12 @@
 
   /* Home */
   .home {
-    @apply no-scrollbar flex w-full flex-row bg-white dark:bg-slate-950 max-xl:max-h-screen max-xl:overflow-y-scroll;
+    @apply no-scrollbar flex min-w-0 w-full flex-row overflow-x-hidden bg-white dark:bg-slate-950 max-xl:max-h-screen max-xl:overflow-y-scroll;
     animation: fade-slide-up 280ms ease both;
   }
 
   .home-content {
-    @apply no-scrollbar relative isolate flex w-full flex-1 flex-col gap-8 overflow-hidden px-5 py-7 sm:px-8 lg:py-12 xl:max-h-screen xl:overflow-y-scroll;
+    @apply no-scrollbar relative isolate flex min-w-0 flex-1 flex-col gap-8 overflow-hidden px-5 py-7 sm:px-8 lg:py-12 xl:max-h-screen xl:overflow-y-scroll;
   }
 
   .home-content::before {
@@ -378,7 +383,7 @@
   }
 
   .recent-transactions {
-    @apply relative z-10 flex w-full flex-col gap-6;
+    @apply relative z-10 flex min-w-0 w-full flex-col gap-6 overflow-x-hidden;
   }
 
   .view-all-btn {
@@ -390,12 +395,13 @@
   }
 
   .recent-transactions-tablist {
-    @apply custom-scrollbar mb-8 flex w-full flex-nowrap justify-center rounded-lg border border-gray-200 bg-gray-50 dark:border-slate-800 dark:bg-slate-900/80;
+    @apply custom-scrollbar mb-8 flex w-full flex-nowrap justify-start overflow-x-auto rounded-lg border border-gray-200 bg-gray-50 dark:border-slate-800 dark:bg-slate-900/80;
   }
 
   /* Right sidebar */
   .right-sidebar {
-    @apply no-scrollbar hidden h-screen max-h-screen flex-col border-l border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-950 xl:flex w-[355px] xl:overflow-y-scroll !important;
+    @apply no-scrollbar hidden h-screen max-h-screen shrink-0 flex-col border-l border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-950 xl:flex xl:overflow-y-scroll !important;
+    width: clamp(360px, 27vw, 440px);
     animation: fade-slide-up 320ms ease both;
   }
 
@@ -404,7 +410,8 @@
   }
 
   .profile {
-    @apply relative flex px-6 max-xl:justify-center;
+    @apply relative flex max-xl:justify-center;
+    padding-inline: clamp(1rem, 2vw, 2rem);
   }
 
   .profile-img {
@@ -425,17 +432,18 @@
   }
 
   .banks {
-    @apply flex flex-col justify-between gap-8 px-6 py-8;
+    @apply flex flex-col justify-between gap-8 py-8;
+    padding-inline: clamp(1rem, 2vw, 2rem);
   }
 
   /* My Banks */
   .my-banks {
-    @apply flex h-screen max-h-screen w-full flex-col gap-8 bg-gray-25 p-8 dark:bg-slate-950 xl:py-12;
+    @apply flex h-full min-w-0 w-full flex-col gap-8 overflow-x-hidden overflow-y-auto bg-gray-25 p-8 dark:bg-slate-950 xl:py-12;
   }
 
   /* My Banks */
   .transactions {
-    @apply flex max-h-screen w-full flex-col gap-8 overflow-y-scroll bg-gray-25 p-8 dark:bg-slate-950 xl:py-12;
+    @apply flex h-full min-w-0 w-full flex-col gap-8 overflow-x-hidden overflow-y-auto bg-gray-25 p-8 dark:bg-slate-950 xl:py-12;
   }
 
   .transactions-header {
@@ -530,12 +538,12 @@
 
   /* Auth */
   .auth-asset {
-    @apply flex h-screen w-full sticky top-0 items-center justify-end bg-sky-1 dark:bg-slate-950 max-lg:hidden;
+    @apply sticky top-0 flex h-screen w-full items-center justify-end border-l border-gray-100 bg-sky-1 dark:border-slate-800 dark:bg-slate-900 max-lg:hidden;
   }
 
   /* Auth Form */
   .auth-form {
-    @apply flex min-h-screen w-full max-w-[420px] flex-col justify-center gap-5 py-10 md:gap-8;
+    @apply flex min-h-screen w-full max-w-[460px] flex-col justify-center gap-5 bg-white py-10 text-gray-900 dark:bg-slate-950 dark:text-slate-50 md:gap-8;
   }
 
   .form-item {
@@ -543,7 +551,7 @@
   }
 
   .form-label {
-    @apply text-14 w-full max-w-[280px] font-medium text-gray-700 dark:text-slate-300;
+    @apply text-14 w-full font-medium text-gray-700 dark:text-slate-300;
   }
 
   .form-message {
@@ -912,7 +920,7 @@
 
   /* Payment Transfer */
   .payment-transfer {
-    @apply no-scrollbar flex flex-col overflow-y-scroll bg-gray-25 p-8 dark:bg-slate-950 md:max-h-screen xl:py-12;
+    @apply no-scrollbar flex h-full min-w-0 flex-col overflow-x-hidden overflow-y-auto bg-gray-25 p-8 dark:bg-slate-950 xl:py-12;
   }
 
   .payment-transfer_form-item {
@@ -1010,7 +1018,7 @@
 
   /* Sidebar */
   .sidebar {
-    @apply sticky left-0 top-0 flex h-screen w-fit flex-col justify-between border-r border-gray-200 bg-white pt-8 text-white dark:border-slate-800 dark:bg-slate-950 max-md:hidden sm:p-4 xl:p-6 2xl:w-[355px];
+    @apply sticky left-0 top-0 flex h-screen w-fit shrink-0 flex-col justify-between border-r border-gray-200 bg-white pt-8 text-white dark:border-slate-800 dark:bg-slate-950 max-md:hidden sm:p-4 xl:p-6 2xl:w-[355px];
     animation: fade-slide-right 260ms ease both;
   }
 
@@ -1026,4 +1034,3 @@
     @apply text-16 font-semibold text-black-2 dark:text-slate-300 max-xl:hidden;
   }
 }
-

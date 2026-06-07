@@ -23,11 +23,11 @@ export const Pagination = ({ page, totalPages }: PaginationProps) => {
   };
 
   return (
-    <div className="flex justify-between gap-3">
+    <div className="flex w-full items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-sm dark:border-slate-800 dark:bg-slate-950">
       <Button
-        size="lg"
-        variant="ghost"
-        className="p-0 hover:bg-transparent"
+        size="default"
+        variant="outline"
+        className="min-w-[92px] gap-2 px-3"
         onClick={() => handleNavigation("prev")}
         disabled={Number(page) <= 1}
       >
@@ -36,17 +36,16 @@ export const Pagination = ({ page, totalPages }: PaginationProps) => {
           alt="arrow"
           width={20}
           height={20}
-          className="mr-2"
         />
         Prev
       </Button>
-      <p className="text-14 flex items-center px-2">
+      <p className="flex min-w-[64px] items-center justify-center rounded-md bg-gray-50 px-3 py-2 text-14 font-semibold text-gray-700 dark:bg-slate-900 dark:text-slate-200">
         {page} / {totalPages}
       </p>
       <Button
-        size="lg"
-        variant="ghost"
-        className="p-0 hover:bg-transparent"
+        size="default"
+        variant="outline"
+        className="min-w-[92px] gap-2 px-3"
         onClick={() => handleNavigation("next")}
         disabled={Number(page) >= totalPages}
       >
@@ -56,7 +55,7 @@ export const Pagination = ({ page, totalPages }: PaginationProps) => {
           alt="arrow"
           width={20}
           height={20}
-          className="ml-2 -scale-x-100"
+          className="-scale-x-100"
         />
       </Button>
     </div>

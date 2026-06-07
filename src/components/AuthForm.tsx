@@ -110,12 +110,12 @@ const AuthForm = ({ type }: { type: string }) => {
         <div className="flex flex-col gap-1 md:gap-3">
           <h1 className="text-24 lg:text-36 font-semibold text-gray-900 dark:text-slate-50">
             {user ? "Link Account" : type === "sign-in" ? "Sign In" : "Sign Up"}
-            <p className="text-16 font-normal text-gray-600 dark:text-slate-400">
-              {user
-                ? "Link your account to get started"
-                : "Please enter your details"}
-            </p>
           </h1>
+          <p className="text-16 font-normal text-gray-600 dark:text-slate-400">
+            {user
+              ? "Link your account to get started"
+              : "Please enter your details"}
+          </p>
         </div>
       </header>
 
@@ -131,7 +131,7 @@ const AuthForm = ({ type }: { type: string }) => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               {type === "sign-up" && (
                 <>
-                  <div className="flex gap-4">
+                  <div className="flex flex-col gap-4 sm:flex-row">
                     <CustomInput
                       control={form.control}
                       name="firstName"
@@ -157,7 +157,7 @@ const AuthForm = ({ type }: { type: string }) => {
                     label="City"
                     placeholder="Enter your city"
                   />
-                  <div className="flex gap-4">
+                  <div className="flex flex-col gap-4 sm:flex-row">
                     <CustomInput
                       control={form.control}
                       name="state"
@@ -171,7 +171,7 @@ const AuthForm = ({ type }: { type: string }) => {
                       placeholder="Example: 11101"
                     />
                   </div>
-                  <div className="flex gap-4">
+                  <div className="flex flex-col gap-4 sm:flex-row">
                     <CustomInput
                       control={form.control}
                       name="dateOfBirth"
