@@ -97,7 +97,11 @@ export const getTransactionCategory = (transaction: Transaction) => {
     return "Shopping";
   }
 
-  if (name.includes("transfer") || name.includes("novapay")) {
+  if (
+    name.includes("transfer") ||
+    name.includes("novapay") ||
+    name.includes("novausd")
+  ) {
     return "Transfer";
   }
 

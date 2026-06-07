@@ -4,9 +4,6 @@ export const SNOVAUSD_DECIMALS = 24;
 const ZERO = BigInt(0);
 const TEN = BigInt(10);
 
-const stripTrailingZeros = (value: string) =>
-  value.replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "");
-
 export const parseTokenAmount = (value: string, decimals: number) => {
   const normalized = value.trim();
 
@@ -40,8 +37,11 @@ export const formatTokenAmount = (
     .toString()
     .padStart(decimals, "0")
     .slice(0, maxFractionDigits);
+  const trimmedFraction = fractionText.replace(/0+$/, "");
 
-  return `${whole.toLocaleString("en-US")}.${stripTrailingZeros(fractionText)}`;
+  return trimmedFraction
+    ? `${whole.toLocaleString("en-US")}.${trimmedFraction}`
+    : whole.toLocaleString("en-US");
 };
 
 export const formatScaledAmount = (

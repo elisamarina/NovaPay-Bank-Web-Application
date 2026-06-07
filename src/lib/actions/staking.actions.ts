@@ -1,16 +1,19 @@
 import { ID, Query } from "node-appwrite";
 
 import { createAdminClient } from "../appwrite";
+import {
+  ZERO,
+  accrueStakingInterest,
+  buildStakingSnapshot,
+  getTierForPrincipal,
+  parseStakingBigInt,
+  parseStakingTimestamp,
+} from "../staking.utils";
 
 const {
   APPWRITE_DATABASE_ID: DATABASE_ID,
   APPWRITE_STAKING_POSITION_COLLECTION_ID: STAKING_POSITION_COLLECTION_ID,
 } = process.env;
-
-const ZERO = BigInt(0);
-const BPS = BigInt(10_000);
-const TOKEN_UNIT = BigInt(10) ** BigInt(18);
-const YEAR_IN_SECONDS = BigInt(365 * 24 * 60 * 60);
 
 type StakingPositionDocument = {
   $id: string;
@@ -37,27 +40,6 @@ type RecordStakeRedeemInput = StakingPositionInput & {
   assets: string;
 };
 
-const STAKING_TIERS = [
-  {
-    id: "starter",
-    label: "Starter",
-    minPrincipal: ZERO,
-    aprBps: BigInt(400),
-  },
-  {
-    id: "growth",
-    label: "Growth",
-    minPrincipal: BigInt(100) * TOKEN_UNIT,
-    aprBps: BigInt(700),
-  },
-  {
-    id: "prime",
-    label: "Prime",
-    minPrincipal: BigInt(1_000) * TOKEN_UNIT,
-    aprBps: BigInt(1_000),
-  },
-];
-
 const REQUIRED_ATTRIBUTES = [
   "userId",
   "smartAccount",
@@ -69,73 +51,7 @@ const REQUIRED_ATTRIBUTES = [
   "status",
 ];
 
-const parseBigInt = (value: string | undefined) => {
-  try {
-    return BigInt(value ?? "0");
-  } catch {
-    return ZERO;
-  }
-};
-
-const parseTimestamp = (value: string | undefined, fallback: number) => {
-  const parsed = Number(value);
-
-  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : fallback;
-};
-
 const getCurrentTimestamp = () => Math.floor(Date.now() / 1000);
-
-const getTierForPrincipal = (principal: bigint) =>
-  STAKING_TIERS.reduce((currentTier, tier) =>
-    principal >= tier.minPrincipal ? tier : currentTier,
-  );
-
-const accrueInterest = (
-  principal: bigint,
-  accrued: bigint,
-  aprBps: bigint,
-  lastAccruedAt: number,
-  now: number,
-) => {
-  const elapsedSeconds = Math.max(now - lastAccruedAt, 0);
-
-  if (principal === ZERO || aprBps === ZERO || elapsedSeconds === 0) {
-    return accrued;
-  }
-
-  return (
-    accrued +
-    (principal * aprBps * BigInt(elapsedSeconds)) / (BPS * YEAR_IN_SECONDS)
-  );
-};
-
-const buildSnapshot = (
-  smartAccount: string,
-  principal: bigint,
-  accrued: bigint,
-  aprBps: bigint,
-  tierId: string,
-  lastAccruedAt: number,
-  configured: boolean,
-) => {
-  const tier =
-    STAKING_TIERS.find((availableTier) => availableTier.id === tierId) ??
-    getTierForPrincipal(principal);
-
-  return {
-    accrued: accrued.toString(),
-    accruedNow: accrued.toString(),
-    aprBps: aprBps.toString(),
-    configured,
-    lastAccruedAt: lastAccruedAt.toString(),
-    positionValue: (principal + accrued).toString(),
-    principal: principal.toString(),
-    smartAccount,
-    tier: tier.id,
-    tierLabel: tier.label,
-    updatedAt: lastAccruedAt,
-  };
-};
 
 export const getDefaultStakingPosition = (
   smartAccount: string,
@@ -144,7 +60,7 @@ export const getDefaultStakingPosition = (
   const now = getCurrentTimestamp();
   const tier = getTierForPrincipal(ZERO);
 
-  return buildSnapshot(
+  return buildStakingSnapshot(
     smartAccount,
     ZERO,
     ZERO,
@@ -202,19 +118,19 @@ const snapshotFromDocument = (
   configured = true,
 ) => {
   const now = getCurrentTimestamp();
-  const principal = parseBigInt(document.principal);
+  const principal = parseStakingBigInt(document.principal);
   const tier = getTierForPrincipal(principal);
-  const aprBps = parseBigInt(document.aprBps) || tier.aprBps;
-  const lastAccruedAt = parseTimestamp(document.lastAccruedAt, now);
-  const accrued = accrueInterest(
+  const aprBps = parseStakingBigInt(document.aprBps) || tier.aprBps;
+  const lastAccruedAt = parseStakingTimestamp(document.lastAccruedAt, now);
+  const accrued = accrueStakingInterest(
     principal,
-    parseBigInt(document.accrued),
+    parseStakingBigInt(document.accrued),
     aprBps,
     lastAccruedAt,
     now,
   );
 
-  return buildSnapshot(
+  return buildStakingSnapshot(
     smartAccount,
     principal,
     accrued,
@@ -259,7 +175,7 @@ export const recordStakingDeposit = async ({
   smartAccount,
   userId,
 }: RecordStakeDepositInput) => {
-  const depositAmount = parseBigInt(amount);
+  const depositAmount = parseStakingBigInt(amount);
 
   if (depositAmount <= ZERO) {
     throw new Error("Deposit amount must be greater than zero.");
@@ -276,8 +192,8 @@ export const recordStakingDeposit = async ({
   const currentSnapshot = existingDocument
     ? snapshotFromDocument(existingDocument, smartAccount, true)
     : getDefaultStakingPosition(smartAccount, true);
-  const principal = parseBigInt(currentSnapshot.principal) + depositAmount;
-  const accrued = parseBigInt(currentSnapshot.accruedNow);
+  const principal = parseStakingBigInt(currentSnapshot.principal) + depositAmount;
+  const accrued = parseStakingBigInt(currentSnapshot.accruedNow);
   const tier = getTierForPrincipal(principal);
   const now = getCurrentTimestamp();
   const payload = {
@@ -313,7 +229,7 @@ export const recordStakingRedeem = async ({
   smartAccount,
   userId,
 }: RecordStakeRedeemInput) => {
-  const redeemedAssets = parseBigInt(assets);
+  const redeemedAssets = parseStakingBigInt(assets);
 
   if (redeemedAssets <= ZERO) {
     throw new Error("Redeem assets must be greater than zero.");
@@ -333,8 +249,8 @@ export const recordStakingRedeem = async ({
   }
 
   const currentSnapshot = snapshotFromDocument(existingDocument, smartAccount, true);
-  const principal = parseBigInt(currentSnapshot.principal);
-  const accrued = parseBigInt(currentSnapshot.accruedNow);
+  const principal = parseStakingBigInt(currentSnapshot.principal);
+  const accrued = parseStakingBigInt(currentSnapshot.accruedNow);
   const nextPrincipal =
     redeemedAssets >= principal ? ZERO : principal - redeemedAssets;
   const nextAccrued =
