@@ -429,6 +429,67 @@ npm run appwrite:staking:init
 npm run appwrite:profile:init
 ```
 
+## Testing And Coverage
+
+The repository has two independent test suites: the Next.js web app tests run from the project root with Vitest, and the Solidity tests run from `contracts/` with Foundry.
+
+### Web App Tests
+
+Run the web app unit tests:
+
+```bash
+npm test
+```
+
+Run web app test coverage:
+
+```bash
+npm run test:coverage
+```
+
+Coverage is scoped to `src/**/*.test.ts` through `vitest.config.ts`. The current web suite covers:
+
+- staking tier selection and APR accrual math in `src/lib/staking.utils.ts`
+- web3 token parsing, formatting, BPS formatting, and address compaction in `src/lib/web3/format.ts`
+- general formatting and transaction category helpers in `src/lib/utils.ts`
+
+Vitest writes LCOV output to `coverage/lcov.info`. The `coverage/` directory is generated output and should not be committed.
+
+Current local snapshot:
+
+| Suite | Tests | Statements | Branches | Functions | Lines |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Web app Vitest | 15 passing | 73.64% | 78.57% | 65.51% | 72.35% |
+
+### Contract Tests
+
+From the `contracts` folder, run the Solidity suite:
+
+```bash
+forge test
+```
+
+Run Solidity coverage:
+
+```bash
+forge coverage
+```
+
+The Foundry suite covers:
+
+- `NovaUSD` minter permissions, user burn support, and owner controls
+- `NovaPayGateway` ETH-to-NovaUSD minting and oracle failure cases
+- `NovaPayStakingVault` ERC-4626 deposits, redemptions, reward tier tracking, accrued reward previews, funded reward redemption, and removed `claimRewards` selector regression
+- vault invariants for share/asset accounting
+
+Foundry coverage is useful for local review, but the generated `contracts/out/` and coverage artifacts should not be treated as source documentation.
+
+Current local snapshot:
+
+| Suite | Tests | Lines | Statements | Branches | Functions |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Contracts Foundry | 52 passing | 78.18% | 77.08% | 55.56% | 83.58% |
+
 ## Foundry Commands
 
 From the `contracts` folder:
@@ -436,6 +497,7 @@ From the `contracts` folder:
 ```bash
 forge build
 forge test
+forge coverage
 forge fmt
 ```
 

@@ -23,6 +23,25 @@ Test:
 forge test
 ```
 
+Coverage:
+
+```shell
+forge coverage
+```
+
+The test suite covers:
+
+- `NovaUSD` minter permissions, owner controls, and direct user burn support.
+- `NovaPayGateway` ETH deposits, oracle validation, mint output, pausing, and access control.
+- `NovaPayStakingVault` ERC-4626 deposits/redemptions, reward tier selection, accrued reward previews, funded reward redemption through share price, and the removed `claimRewards` selector regression.
+- Vault invariants for asset/share accounting.
+
+Current local snapshot:
+
+| Suite | Tests | Lines | Statements | Branches | Functions |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Foundry | 52 passing | 78.18% | 77.08% | 55.56% | 83.58% |
+
 Format:
 
 ```shell
